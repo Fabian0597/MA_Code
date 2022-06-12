@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#for looping through different models with different configurations
+
 args1=( 10 11 12 )
 arg2=1.8
 arg3=3
