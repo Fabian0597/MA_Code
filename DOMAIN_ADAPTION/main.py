@@ -25,10 +25,9 @@ def main():
     features_of_interest = train_params[0]
     num_epochs =int(train_params[1])
     GAMMA = float(train_params[2])
-    num_pool = int(train_params[3])
     features_of_interest_folder = features_of_interest.replace("/", "_")
-    folder_to_store_data = "feature=" + str(features_of_interest_folder) + "_" + "num_epochs=" + str(num_epochs) + "_" + "GAMMA=" + str(GAMMA) + "_" + "num_pool=" + str(num_pool)
-    print(f"Features of interest: {features_of_interest} Num of epochs: {num_epochs} GAMMA: {GAMMA} Number of pooling layers: {num_pool}")
+    folder_to_store_data = "feature=" + str(features_of_interest_folder) + "_" + "num_epochs=" + str(num_epochs) + "_" + "GAMMA=" + str(GAMMA)
+    print(f"Features of interest: {features_of_interest} Num of epochs: {num_epochs} GAMMA: {GAMMA}")
 
     
 
@@ -143,8 +142,8 @@ def main():
     window_size = 1024
     overlap_size = 0
     #features_of_interest = ['C:x_bottom', 'C:y_bottom', 'C:z_bottom']
-    list_of_source_BSD_states = ["2"]#, "3", "11", "12", "20", "21"]
-    list_of_target_BSD_states = ["5"]#, "6", "14", "15", "23", "24"]
+    list_of_source_BSD_states = ["2", "3", "11", "12", "20", "21"]
+    list_of_target_BSD_states = ["5", "6", "14", "15", "23", "24"]
     data_path = Path(os.getcwd()).parents[1]
     data_path = os.path.join(data_path, "data")
     dataloader_split_ce = 0.6
