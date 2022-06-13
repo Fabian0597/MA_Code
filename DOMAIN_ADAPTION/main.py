@@ -23,11 +23,12 @@ def main():
     #unpack arguments for training
     train_params = sys.argv[1:]
     features_of_interest = train_params[0]
-    num_epochs =int(train_params[1])
+    num_epochs = int(train_params[1])
     GAMMA = float(train_params[2])
+    num_pool = int(train_params[3])
     features_of_interest_folder = features_of_interest.replace("/", "_")
     folder_to_store_data = "feature=" + str(features_of_interest_folder) + "_" + "num_epochs=" + str(num_epochs) + "_" + "GAMMA=" + str(GAMMA)
-    print(f"Features of interest: {features_of_interest} Num of epochs: {num_epochs} GAMMA: {GAMMA}")
+    print(f"Features of interest: {features_of_interest} Num of epochs: {num_epochs} GAMMA: {GAMMA} num_pool: {num_pool}" )
 
     
 
@@ -66,9 +67,24 @@ def main():
     writer_target["ce"] = writer_target_ce
 
 
+    #Load data
+    window_size = 1024
+    overlap_size = 0
+    #features_of_interest = ['C:x_bottom', 'C:y_bottom', 'C:z_bottom']
+    list_of_source_BSD_states = ["2"]#, "3", "11", "12", "20", "21"]
+    list_of_target_BSD_states = ["5"]#, "6", "14", "15", "23", "24"]
+    data_path = Path(os.getcwd()).parents[1]
+    data_path = os.path.join(data_path, "data")
+    dataloader_split_ce = 0.6
+    dataloader_split_mmd = 0.2
+    dataloader_split_val = 0.2
+    batch_size = 32
+    dataloader_source = Dataloader(data_path, list_of_source_BSD_states, window_size, overlap_size, features_of_interest, dataloader_split_ce, dataloader_split_mmd, dataloader_split_val, batch_size)
+    dataloader_target = Dataloader(data_path, list_of_target_BSD_states, window_size, overlap_size, features_of_interest, dataloader_split_ce, dataloader_split_mmd, dataloader_split_val, batch_size)
+    source_loader = dataloader_source.create_dataloader()
+    target_loader = dataloader_target.create_dataloader()
+
     #define training params
-    #num_epochs = 30
-    #GAMMA = 1,8
     SIGMA = torch.tensor([1,2,4,8,16],dtype=torch.float64)
 
     #mmd_loss_flag
@@ -79,11 +95,11 @@ def main():
 
     #Models
     input_size = 1
-    input_fc_size = 32*299
+    #input_fc_size = 32*299
     hidden_fc_size_1 = 50
     hidden_fc_size_2 = 3
     output_size = 2
-    model_cnn =  CNN(input_size, input_fc_size, hidden_fc_size_1)
+    model_cnn =  CNN(input_size, hidden_fc_size_1, num_pool, window_size)
     model_fc = Classifier(hidden_fc_size_1, hidden_fc_size_2, output_size)
 
 
@@ -138,22 +154,7 @@ def main():
     accuracy_list_target['mmd']=[]
     accuracy_list_target['ce'] = []
 
-    #Load data
-    window_size = 1024
-    overlap_size = 0
-    #features_of_interest = ['C:x_bottom', 'C:y_bottom', 'C:z_bottom']
-    list_of_source_BSD_states = ["2", "3", "11", "12", "20", "21"]
-    list_of_target_BSD_states = ["5", "6", "14", "15", "23", "24"]
-    data_path = Path(os.getcwd()).parents[1]
-    data_path = os.path.join(data_path, "data")
-    dataloader_split_ce = 0.6
-    dataloader_split_mmd = 0.2
-    dataloader_split_val = 0.2
-    batch_size = 32
-    dataloader_source = Dataloader(data_path, list_of_source_BSD_states, window_size, overlap_size, features_of_interest, dataloader_split_ce, dataloader_split_mmd, dataloader_split_val, batch_size)
-    dataloader_target = Dataloader(data_path, list_of_target_BSD_states, window_size, overlap_size, features_of_interest, dataloader_split_ce, dataloader_split_mmd, dataloader_split_val, batch_size)
-    source_loader = dataloader_source.create_dataloader()
-    target_loader = dataloader_target.create_dataloader()
+
 
     # Train and Validate the model
     for epoch in range(num_epochs):

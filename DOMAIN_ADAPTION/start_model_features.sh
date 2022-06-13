@@ -1,8 +1,7 @@
 #!/bin/bash
 
 #for looping through different models with different configurations
-GAMMA=1.8
-num_epochs=10
+
 features_of_interest=("C:s_ist/X" "C:s_soll/X" "C:s_diff/X" "C:v_(n_ist)/X" "C:v_(n_soll)/X" "C:P_mech./X" "C:Pos._Diff./X"
         "C:I_ist/X" "C:I_soll/X" "C:x_bottom" "C:y_bottom" "C:z_bottom" "C:x_nut" "C:y_nut" "C:z_nut"
         "C:x_top" "C:y_top" "C:z_top" "D:s_ist/X" "D:s_soll/X" "D:s_diff/X" "D:v_(n_ist)/X" "D:v_(n_soll)/X"
@@ -11,8 +10,10 @@ features_of_interest=("C:s_ist/X" "C:s_soll/X" "C:s_diff/X" "C:v_(n_ist)/X" "C:v
         "S:x_nut" "S:y_nut" "S:z_nut" "S:x_top" "S:y_top" "S:z_top" "S:Nominal_rotational_speed[rad/s]"
         "S:Actual_rotational_speed[µm/s]" "S:Actual_position_of_the_position_encoder(dy/dt)[µm/s]"
         "S:Actual_position_of_the_motor_encoder(dy/dt)[µm/s]")
-
+num_epochs=10
+GAMMA=1.8
+num_pool=1
 
 for feature_of_interest in ${features_of_interest[@]}; do
-  python3 main.py $feature_of_interest $num_epochs $GAMMA
+  python3 main.py $feature_of_interest $num_epochs $GAMMA $num_pool
 done
