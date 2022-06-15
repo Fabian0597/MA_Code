@@ -57,7 +57,7 @@ class Plotter():
         plt.xlabel("Epoch $\longrightarrow$")
         plt.ylabel("Accuracy Source Domain $\longrightarrow$")
         plt.legend()
-        fig1.savefig(f"{self.datapath}/plots/Accuracy_Source_Domain.pdf", format='pdf')
+        fig1.savefig(f"{self.datapath}/learning_curve/Accuracy_Source_Domain.pdf", format='pdf')
 
         #Plot Accuracy Target
         fig2 = plt.figure()
@@ -68,7 +68,7 @@ class Plotter():
         plt.xlabel("Epoch $\longrightarrow$")
         plt.ylabel("Accuracy Target Domain $\longrightarrow$")
         plt.legend()
-        fig2.savefig(f"{self.datapath}/plots/Accuracy_Target_Domain.pdf", format='pdf')
+        fig2.savefig(f"{self.datapath}/learning_curve/Accuracy_Target_Domain.pdf", format='pdf')
 
         #Plot CE Loss Source
         fig3 = plt.figure()
@@ -79,7 +79,7 @@ class Plotter():
         plt.xlabel("Epoch $\longrightarrow$")
         plt.ylabel("CE-Loss Source Domain $\longrightarrow$")
         plt.legend()
-        fig3.savefig(f"{self.datapath}/plots/CE_Loss_Source_Domain.pdf", format='pdf')
+        fig3.savefig(f"{self.datapath}/learning_curve/CE_Loss_Source_Domain.pdf", format='pdf')
 
         #Plot CE Loss Target
         fig4 = plt.figure()
@@ -90,7 +90,7 @@ class Plotter():
         plt.xlabel("Epoch $\longrightarrow$")
         plt.ylabel("CE-Loss Target Domain $\longrightarrow$")
         plt.legend()
-        fig4.savefig(f"{self.datapath}/plots/CE_Loss_Target_Domain.pdf", format='pdf')
+        fig4.savefig(f"{self.datapath}/learning_curve/CE_Loss_Target_Domain.pdf", format='pdf')
 
         #Plot MMD Loss
         fig5 = plt.figure()
@@ -101,4 +101,4 @@ class Plotter():
         plt.xlabel("Epoch $\longrightarrow$")
         plt.ylabel("MMD-Loss $\longrightarrow$")
         plt.legend()
-        fig5.savefig(f"{self.datapath}/plots/MMD_Loss.pdf", format='pdf')
+        fig5.savefig(f"{self.datapath}/learning_curve/MMD_Loss.pdf", format='pdf')

@@ -249,14 +249,6 @@ def main():
             running_source_ce_loss = source_ce_loss_collected / len(source_loader[phase])
             running_target_ce_loss = target_ce_loss_collected / len(target_loader[phase])
 
-            #store learning curve data in csv
-            """
-            if phase == 'ce':
-                f_plots.write(f'{running_acc_source}, {running_acc_target}, {running_source_ce_loss}, {running_target_ce_loss}, {running_mmd_loss}\n')
-            else:
-                f_plots.write(f'{running_acc_source}, {running_acc_target}, {running_source_ce_loss}, {running_target_ce_loss}, {running_mmd_loss}, ')
-            """
-            learning_curve_data_collect = learning_curve_data_collect + [running_acc_source, running_acc_target, running_source_ce_loss, running_target_ce_loss, running_mmd_loss]
             #Add train data to tensorboard list
             writer_source[phase].add_scalar(f'accuracy', running_acc_source, epoch)
             writer_target[phase].add_scalar(f'accuracy', running_acc_target, epoch)
@@ -272,12 +264,15 @@ def main():
             mmd_loss_collected = 0
             acc_total_source_collected = 0
             acc_total_target_collected = 0
-            f_accuracy_collect.append(running_acc_source)
-            f_accuracy_collect.append(running_acc_target)
-            print((epoch, phase,running_acc_source))
-            print((epoch, phase, running_acc_target))
+
+            #store learning curve data and accuracies as list in csv
+            learning_curve_data_collect = learning_curve_data_collect + [running_acc_source, running_acc_target, running_source_ce_loss, running_target_ce_loss, running_mmd_loss]
+            f_accuracy_collect = f_accuracy_collect + [running_acc_source, running_acc_target]
+
+        #store learning curve data and accuracies as csv
         f_learning_curve_writer.writerow([running_acc_source, running_acc_target, running_source_ce_loss, running_target_ce_loss, running_mmd_loss])
         f_accuracy_writer.writerow(f_accuracy_collect)
+        
         print(f"Epoch {epoch+1}/{num_epochs} successfull")
     f_accuracy.close()
     f_learning_curve.close()
