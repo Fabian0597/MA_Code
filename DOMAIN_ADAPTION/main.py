@@ -26,12 +26,13 @@ def main():
     num_epochs = int(train_params[1])
     GAMMA = float(train_params[2])
     num_pool = int(train_params[3])
-    features_of_interest_folder = features_of_interest.replace("/", "_")
-    folder_to_store_data = "feature=" + str(features_of_interest_folder) + "_" + "num_epochs=" + str(num_epochs) + "_" + "GAMMA=" + str(GAMMA)
     print(f"Features of interest: {features_of_interest} Num of epochs: {num_epochs} GAMMA: {GAMMA} num_pool: {num_pool}" )
 
-    
+    #Folder name to store plots and data for that experiment
+    features_of_interest_folder = features_of_interest.replace("/", "_")
+    folder_to_store_data = "feature=" + str(features_of_interest_folder) + "_" + "num_epochs=" + str(num_epochs) + "_" + "GAMMA=" + str(GAMMA)
 
+    #Generate folder structure to store plots and data
     current_directory = os.getcwd()
     path_plots = os.path.join(current_directory, folder_to_store_data, "plots")
     path_plots_data = os.path.join(current_directory, folder_to_store_data, "plots_data")
@@ -47,6 +48,10 @@ def main():
         os.makedirs(path_data_distribution_data)
 
 
+    # create csv file to store data from plots in 
+    f_plots = open(f'{folder_to_store_data}_plots.csv', 'w')
+    # create header of csv file
+    f_plots.write(f'running_acc_source_val,running_acc_target_val,running_source_ce_loss_val,running_target_ce_loss_val,running_mmd_loss_val,running_acc_source_mmd,running_acc_target_mmd,running_source_ce_loss_mmd,running_target_ce_loss_mmd,running_mmd_loss_mmd,running_acc_source_ce,running_acc_target_ce,running_source_ce_loss_ce,running_target_ce_loss_ce,running_mmd_loss_ce\n')
     #init writer for tensorboard    
     writer_graph = SummaryWriter('runs/Dataloader2/graph')
     writer_source_val = SummaryWriter('runs/Dataloader2/source_val')
@@ -67,14 +72,19 @@ def main():
     writer_target["ce"] = writer_target_ce
 
 
-    #Load data
+    #Windowing details
     window_size = 1024
     overlap_size = 0
-    #features_of_interest = ['C:x_bottom', 'C:y_bottom', 'C:z_bottom']
-    list_of_source_BSD_states = ["2"]#, "3", "11", "12", "20", "21"]
-    list_of_target_BSD_states = ["5"]#, "6", "14", "15", "23", "24"]
+
+    # Define which BSD states should be included in source and target domain
+    list_of_source_BSD_states = ["2", "3"]#, "11", "12", "20", "21"]
+    list_of_target_BSD_states = ["5", "6"]#, "14", "15", "23", "24"]
+
+    #Define path where dataset is stored
     data_path = Path(os.getcwd()).parents[1]
     data_path = os.path.join(data_path, "data")
+
+    #Generate dataloader
     dataloader_split_ce = 0.6
     dataloader_split_mmd = 0.2
     dataloader_split_val = 0.2
@@ -84,10 +94,10 @@ def main():
     source_loader = dataloader_source.create_dataloader()
     target_loader = dataloader_target.create_dataloader()
 
-    #define training params
+    #define Sigma for MMD Loss
     SIGMA = torch.tensor([1,2,4,8,16],dtype=torch.float64)
 
-    #mmd_loss_flag
+    #Define mmd_loss_flag to specify which trainingphases use MMD and CE Loss
     MMD_loss_flag_phase = {}
     MMD_loss_flag_phase["val"] = False
     MMD_loss_flag_phase["mmd"] = True
@@ -95,7 +105,6 @@ def main():
 
     #Models
     input_size = 1
-    #input_fc_size = 32*299
     hidden_fc_size_1 = 50
     hidden_fc_size_2 = 3
     output_size = 2
@@ -180,8 +189,6 @@ def main():
                 batch_data_target, labels_target = iter_loader_target.next() #batch_size number of windows from target domain
                 batch_data = torch.cat((batch_data_source, batch_data_target), dim=0) #concat the windows to 2*batch_size number of windows
 
-
-
                 #validation
                 if phase == "val":
                     model_cnn.train(False)
@@ -242,7 +249,21 @@ def main():
                 data = [class_0_source_fc2_collect, class_1_source_fc2_collect, class_0_target_fc2_collect, class_1_target_fc2_collect]
                 for i in range(4):
                     ax.scatter(data[i][:,0], data[i][:,1], data[i][:,2], marker=m[i])
-                
+
+                df1 = pd.DataFrame({'class_0_source_fc2_collect_0_dim':class_0_source_fc2_collect[:, 0]})
+                df2 = pd.DataFrame({'class_0_source_fc2_collect_1_dim':class_0_source_fc2_collect[:, 1]})
+                df3 = pd.DataFrame({'class_0_source_fc2_collect_2_dim':class_0_source_fc2_collect[:, 2]})
+                df4 = pd.DataFrame({'class_1_source_fc2_collect_0_dim':class_1_source_fc2_collect[:, 0]})
+                df5 = pd.DataFrame({'class_1_source_fc2_collect_1_dim':class_1_source_fc2_collect[:, 1]})
+                df6 = pd.DataFrame({'class_1_source_fc2_collect_2_dim':class_1_source_fc2_collect[:, 2]})
+                df7 = pd.DataFrame({'class_0_target_fc2_collect_0_dim':class_0_target_fc2_collect[:, 0]})
+                df8 = pd.DataFrame({'class_0_target_fc2_collect_1_dim':class_0_target_fc2_collect[:, 1]})
+                df9 = pd.DataFrame({'class_0_target_fc2_collect_2_dim':class_0_target_fc2_collect[:, 2]})
+                df10 = pd.DataFrame({'class_1_target_fc2_collect_0_dim':class_1_target_fc2_collect[:, 0]})
+                df11 = pd.DataFrame({'class_1_target_fc2_collect_1_dim':class_1_target_fc2_collect[:, 1]})
+                df12 = pd.DataFrame({'class_1_target_fc2_collect_2_dim':class_1_target_fc2_collect[:, 2]})
+                pd.concat([df1,df2,df3,df4,df5,df6,df7,df8,df9,df10,df11,df12],axis=1).to_csv(f'{folder_to_store_data}_distribution_{epoch}.csv', index = False)
+    
                 #safe data
                 b = open(f"{folder_to_store_data}/data_distribution_data/{epoch}_distribution.csv", 'w')
                 a = csv.writer(b)
@@ -266,15 +287,19 @@ def main():
             running_source_ce_loss = source_ce_loss_collected / len(source_loader[phase])
             running_target_ce_loss = target_ce_loss_collected / len(target_loader[phase])
             
-            
             #Add train data to plot list
+
             accuracy_list_source[phase].append(running_acc_source)
             accuracy_list_target[phase].append(running_acc_target)
             ce_loss_list_source[phase].append(running_source_ce_loss)
             ce_loss_list_target[phase].append(running_target_ce_loss)
             mmd_loss_list[phase].append(running_mmd_loss)
 
-
+            if phase == 'ce':
+                f_plots.write(f'{running_acc_source}, {running_acc_target}, {running_source_ce_loss}, {running_target_ce_loss}, {running_mmd_loss}\n')
+            else:
+                f_plots.write(f'{running_acc_source}, {running_acc_target}, {running_source_ce_loss}, {running_target_ce_loss}, {running_mmd_loss}, ')
+            
             #Add train data to tensorboard list
             writer_source[phase].add_scalar(f'accuracy', running_acc_source, epoch)
             writer_target[phase].add_scalar(f'accuracy', running_acc_target, epoch)
@@ -291,8 +316,8 @@ def main():
             acc_total_source_collected = 0
             acc_total_target_collected = 0
                 
-
         print(f"Epoch {epoch+1}/{num_epochs} successfull")
+    f_plots.close()
 
     #Plot training curves
     fig1 = plt.figure()
@@ -303,10 +328,10 @@ def main():
     plt.xlabel("Epoch $\longrightarrow$")
     plt.ylabel("Accuracy Source Domain $\longrightarrow$")
     plt.legend()
-    fig1.savefig('{folder_to_store_data}/plots/Accuracy Source Domain', format='pdf')
-    pd.DataFrame(accuracy_list_source['ce']).to_csv('{folder_to_store_data}/plots_data/accuracy_list_source_ce.csv',index=False,header=False)
-    pd.DataFrame(accuracy_list_source['mmd']).to_csv('{folder_to_store_data}/plots_data/accuracy_list_source_mmd.csv',index=False,header=False)
-    pd.DataFrame(accuracy_list_source['val']).to_csv('{folder_to_store_data}/plots_data/accuracy_list_source_val.csv',index=False,header=False)
+    fig1.savefig(f'{folder_to_store_data}/plots/Accuracy_Source_Domain', format='pdf')
+    pd.DataFrame(accuracy_list_source['ce']).to_csv(f'{folder_to_store_data}/plots_data/accuracy_list_source_ce.csv',index=False,header=False)
+    pd.DataFrame(accuracy_list_source['mmd']).to_csv(f'{folder_to_store_data}/plots_data/accuracy_list_source_mmd.csv',index=False,header=False)
+    pd.DataFrame(accuracy_list_source['val']).to_csv(f'{folder_to_store_data}/plots_data/accuracy_list_source_val.csv',index=False,header=False)
 
     fig2 = plt.figure()
     plt.title('Accuracy Target Domain')
@@ -316,10 +341,10 @@ def main():
     plt.xlabel("Epoch $\longrightarrow$")
     plt.ylabel("Accuracy Target Domain $\longrightarrow$")
     plt.legend()
-    fig2.savefig('{folder_to_store_data}/plots/Accuracy Target Domain', format='pdf')
-    pd.DataFrame(accuracy_list_target['ce']).to_csv('{folder_to_store_data}/plots_data/accuracy_list_target_ce.csv',index=False,header=False)
-    pd.DataFrame(accuracy_list_target['mmd']).to_csv('{folder_to_store_data}/plots_data/accuracy_list_target_mmd.csv',index=False,header=False)
-    pd.DataFrame(accuracy_list_target['val']).to_csv('{folder_to_store_data}/plots_data/accuracy_list_target_val.csv',index=False,header=False)
+    fig2.savefig(f'{folder_to_store_data}/plots/Accuracy_Target_Domain', format='pdf')
+    pd.DataFrame(accuracy_list_target['ce']).to_csv(f'{folder_to_store_data}/plots_data/accuracy_list_target_ce.csv',index=False,header=False)
+    pd.DataFrame(accuracy_list_target['mmd']).to_csv(f'{folder_to_store_data}/plots_data/accuracy_list_target_mmd.csv',index=False,header=False)
+    pd.DataFrame(accuracy_list_target['val']).to_csv(f'{folder_to_store_data}/plots_data/accuracy_list_target_val.csv',index=False,header=False)
 
     fig3 = plt.figure()
     plt.title('CE-Loss Source Domain')
@@ -329,10 +354,10 @@ def main():
     plt.xlabel("Epoch $\longrightarrow$")
     plt.ylabel("CE-Loss Source Domain $\longrightarrow$")
     plt.legend()
-    fig3.savefig('{folder_to_store_data}/plots/CE_Loss Source Domain', format='pdf')
-    pd.DataFrame(ce_loss_list_source['ce']).to_csv('{folder_to_store_data}/plots_data/ce_loss_list_source_ce.csv',index=False,header=False)
-    pd.DataFrame(ce_loss_list_source['mmd']).to_csv('{folder_to_store_data}/plots_data/ce_loss_list_source_mmd.csv',index=False,header=False)
-    pd.DataFrame(ce_loss_list_source['val']).to_csv('{folder_to_store_data}/plots_data/ce_loss_list_source_val.csv',index=False,header=False)
+    fig3.savefig(f'{folder_to_store_data}/plots/CE_Loss_Source_Domain', format='pdf')
+    pd.DataFrame(ce_loss_list_source['ce']).to_csv(f'{folder_to_store_data}/plots_data/ce_loss_list_source_ce.csv',index=False,header=False)
+    pd.DataFrame(ce_loss_list_source['mmd']).to_csv(f'{folder_to_store_data}/plots_data/ce_loss_list_source_mmd.csv',index=False,header=False)
+    pd.DataFrame(ce_loss_list_source['val']).to_csv(f'{folder_to_store_data}/plots_data/ce_loss_list_source_val.csv',index=False,header=False)
 
     fig4 = plt.figure()
     plt.title('CE-Loss Target Domain')
@@ -342,10 +367,10 @@ def main():
     plt.xlabel("Epoch $\longrightarrow$")
     plt.ylabel("CE-Loss Target Domain $\longrightarrow$")
     plt.legend()
-    fig4.savefig('{folder_to_store_data}/plots/CE_Loss Target Domain', format='pdf')
-    pd.DataFrame(ce_loss_list_target['ce']).to_csv('{folder_to_store_data}/plots_data/ce_loss_list_target_ce.csv',index=False,header=False)
-    pd.DataFrame(ce_loss_list_target['mmd']).to_csv('{folder_to_store_data}/plots_data/ce_loss_list_target_mmd.csv',index=False,header=False)
-    pd.DataFrame(ce_loss_list_target['val']).to_csv('{folder_to_store_data}/plots_data/ce_loss_list_target_val.csv',index=False,header=False)
+    fig4.savefig(f'{folder_to_store_data}/plots/CE_Loss_Target_Domain', format='pdf')
+    pd.DataFrame(ce_loss_list_target['ce']).to_csv(f'{folder_to_store_data}/plots_data/ce_loss_list_target_ce.csv',index=False,header=False)
+    pd.DataFrame(ce_loss_list_target['mmd']).to_csv(f'{folder_to_store_data}/plots_data/ce_loss_list_target_mmd.csv',index=False,header=False)
+    pd.DataFrame(ce_loss_list_target['val']).to_csv(f'{folder_to_store_data}/plots_data/ce_loss_list_target_val.csv',index=False,header=False)
 
     fig5 = plt.figure()
     plt.title('MMD-Loss')
@@ -355,10 +380,10 @@ def main():
     plt.xlabel("Epoch $\longrightarrow$")
     plt.ylabel("MMD-Loss $\longrightarrow$")
     plt.legend()
-    fig5.savefig('{folder_to_store_data}/plots/MMD_Loss', format='pdf')
-    pd.DataFrame(mmd_loss_list['ce']).to_csv('{folder_to_store_data}/plots_data/mmd_loss_list_ce.csv',index=False,header=False)
-    pd.DataFrame(mmd_loss_list['mmd']).to_csv('{folder_to_store_data}/plots_data/mmd_loss_list_mmd.csv',index=False,header=False)
-    pd.DataFrame(mmd_loss_list['val']).to_csv('{folder_to_store_data}/plots_data/mmd_loss_list_val.csv',index=False,header=False)
+    fig5.savefig(f'{folder_to_store_data}/plots/MMD_Loss', format='pdf')
+    pd.DataFrame(mmd_loss_list['ce']).to_csv(f'{folder_to_store_data}/plots_data/mmd_loss_list_ce.csv',index=False,header=False)
+    pd.DataFrame(mmd_loss_list['mmd']).to_csv(f'{folder_to_store_data}/plots_data/mmd_loss_list_mmd.csv',index=False,header=False)
+    pd.DataFrame(mmd_loss_list['val']).to_csv(f'{folder_to_store_data}/plots_data/mmd_loss_list_val.csv',index=False,header=False)
 
 if __name__ == "__main__":
     main()
