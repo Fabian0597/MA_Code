@@ -8,20 +8,25 @@ class Plotter():
         self.datapath = datapath
 
     def plot_distribution(self):
-        #train_params = sys.argv[1:]
-        #csv_file_path = train_params[0]
-        #csv_file_path = os.path.join(self.datapath, "data_distribution_data", "data_distribution_0.csv")
+        
+        #get all data_distribution files recorded during training
         csv_file_path_folder = os.path.join(self.datapath, "data_distribution_data")
         csv_file_path_folder_elements = os.listdir(csv_file_path_folder)
+
+        #for each of those files generate a figure
         for element in csv_file_path_folder_elements:
+            
+            #read csv file as pandas
             csv_file_path = os.path.join(self.datapath, "data_distribution_data", element)
             df = pd.read_csv(csv_file_path)
+
+            #create figure
             fig = plt.figure()
             plt.gcf().set_size_inches((20, 20)) 
             ax = fig.add_subplot(projection='3d')
 
-            #plot data
-            m = [1,2,3,4]
+            #plot
+            m = [1,2,3,4] #colours
             columns = df.columns.values.tolist()
             for i in range(4):
                 ax.scatter(df[columns[0+i*3]], df[columns[1+i*3]], df[columns[2+i*3]], marker=m[i])
@@ -30,18 +35,20 @@ class Plotter():
             ax.set_xlabel('Neuron 1 $\longrightarrow$', rotation=0, labelpad=10, size=20)
             ax.set_ylabel('Neuron 2 $\longrightarrow$', rotation=0, labelpad=10, size=20)
             ax.set_zlabel('Neuron 3 $\longrightarrow$', rotation=0, labelpad=10, size=20)
+
+            #set fig size
             plt.rcParams.update({'font.size': 10})
-                        
-            #show and safe fig
-            #fig.savefig(f"{sys.argv[1][:-3]}pdf", format='pdf')  
-            print(f"{self.datapath}/data_distribution/{element}.pdf")    
+
+            #safe figure 
             fig.savefig(f"{self.datapath}/data_distribution/{element[:-4]}.pdf", format='pdf')     
 
     def plot_curves(self):
-        csv_file_path = os.path.join(self.datapath, "plots_data", "plots.csv")
+        
+        #read csv file as pandas
+        csv_file_path = os.path.join(self.datapath, "learning_curve_data", "learning_curve.csv")
         df = pd.read_csv(f'{csv_file_path}')
 
-        #Plot training curves
+        #Plot Accuracy Source
         fig1 = plt.figure()
         plt.title('Accuracy Source Domain')
         plt.plot(df["running_acc_source_ce"], 'bo-', label = 'CE-Loss', linewidth=1,markersize=0.1)
@@ -52,6 +59,7 @@ class Plotter():
         plt.legend()
         fig1.savefig(f"{self.datapath}/plots/Accuracy_Source_Domain.pdf", format='pdf')
 
+        #Plot Accuracy Target
         fig2 = plt.figure()
         plt.title('Accuracy Target Domain')
         plt.plot(df["running_acc_target_ce"], 'co-', label = 'CE-Loss', linewidth=1,markersize=0.1)
@@ -62,6 +70,7 @@ class Plotter():
         plt.legend()
         fig2.savefig(f"{self.datapath}/plots/Accuracy_Target_Domain.pdf", format='pdf')
 
+        #Plot CE Loss Source
         fig3 = plt.figure()
         plt.title('CE-Loss Source Domain')
         plt.plot(df["running_source_ce_loss_ce"], 'bo-', label = 'CE-Loss', linewidth=1,markersize=0.1)
@@ -72,6 +81,7 @@ class Plotter():
         plt.legend()
         fig3.savefig(f"{self.datapath}/plots/CE_Loss_Source_Domain.pdf", format='pdf')
 
+        #Plot CE Loss Target
         fig4 = plt.figure()
         plt.title('CE-Loss Target Domain')
         plt.plot(df["running_target_ce_loss_ce"], 'co-', label = 'CE-Loss', linewidth=1,markersize=0.1)
@@ -82,6 +92,7 @@ class Plotter():
         plt.legend()
         fig4.savefig(f"{self.datapath}/plots/CE_Loss_Target_Domain.pdf", format='pdf')
 
+        #Plot MMD Loss
         fig5 = plt.figure()
         plt.title('MMD-Loss')
         plt.plot(df["running_mmd_loss_ce"], 'bo-', label = 'CE-Loss', linewidth=1,markersize=0.1)

@@ -35,28 +35,39 @@ def main():
 
     #Generate folder structure to store plots and data
     current_directory = os.getcwd()
-    path_plots = os.path.join(current_directory, folder_to_store_data, "plots")
-    path_plots_data = os.path.join(current_directory, folder_to_store_data, "plots_data")
+    path_learning_curve = os.path.join(current_directory, folder_to_store_data, "learning_curve")
+    path_learning_curve_data = os.path.join(current_directory, folder_to_store_data, "learning_curve_data")
     path_data_distribution = os.path.join(current_directory, folder_to_store_data, "data_distribution")
     path_data_distribution_data = os.path.join(current_directory, folder_to_store_data, "data_distribution_data")
-    if not os.path.exists(path_plots):
-        os.makedirs(path_plots)
-    if not os.path.exists(path_plots_data):
-        os.makedirs(path_plots_data)
-    if not os.path.exists(path_data_distribution):
+    path_accuracy = os.path.join(current_directory, folder_to_store_data, "accuracy")
+
+    if not os.path.exists(path_learning_curve): #Folder to store Learning Curve Plots 
+        os.makedirs(path_learning_curve)
+    if not os.path.exists(path_learning_curve_data): #Folder to store Learning Curve Plots Data
+        os.makedirs(path_learning_curve_data)
+    if not os.path.exists(path_data_distribution): #Folder to store Data Distribuiton Plots 
         os.makedirs(path_data_distribution)
-    if not os.path.exists(path_data_distribution_data):
+    if not os.path.exists(path_data_distribution_data): #Folder to store Data Distribuiton Plots Data 
         os.makedirs(path_data_distribution_data)
+    if not os.path.exists(path_accuracy): #Folder to store Accuracies of Training
+        os.makedirs(path_accuracy)
 
 
     plotter = Plotter(folder_to_store_data)
 
     # create csv file to store data from learning curves in 
-    f_plots = open(f'{folder_to_store_data}/plots_data/plots.csv', 'w')
+    f_learning_curve = open(f'{folder_to_store_data}/learning_curve_data/learning_curve.csv', 'w')
+    f_accuracy = open(f'{folder_to_store_data}/accuracy/accuracies.csv', 'w')
 
     # create header of csv file for learning curves
-    f_plots.write(f'running_acc_source_val,running_acc_target_val,running_source_ce_loss_val,running_target_ce_loss_val,running_mmd_loss_val,running_acc_source_mmd,running_acc_target_mmd,running_source_ce_loss_mmd,running_target_ce_loss_mmd,running_mmd_loss_mmd,running_acc_source_ce,running_acc_target_ce,running_source_ce_loss_ce,running_target_ce_loss_ce,running_mmd_loss_ce\n')
+    f_learning_curve_writer = csv.writer(f_learning_curve)
+    f_learning_curve_writer.writerow(['running_acc_source_val','running_acc_target_val','running_source_ce_loss_val','running_target_ce_loss_val','running_mmd_loss_val','running_acc_source_mmd','running_acc_target_mmd','running_source_ce_loss_mmd','running_target_ce_loss_mmd','running_mmd_loss_mmd','running_acc_source_ce','running_acc_target_ce','running_source_ce_loss_ce','running_target_ce_loss_ce','running_mmd_loss_ce'])
 
+    f_accuracy_writer = csv.writer(f_accuracy)
+    f_accuracy_writer.writerow(['accuracy_source_val','accuracy_target_val','accuracy_source_mmd','accuracy_target_mmd','accuracy_source_ce','accuracy_target_ce'])
+
+    #training iterations
+    phases = ['val', 'mmd', 'ce']
 
     #init writer for tensorboard    
     writer_source_val = SummaryWriter('runs/Dataloader2/source_val')
@@ -131,8 +142,6 @@ def main():
 
     optimizer2 = torch.optim.Adam(model_fc.parameters(), lr=1e-2, betas=(0.9, 0.999))
 
-    #training iterations
-    phases = ['val', 'mmd', 'ce']
 
     #init variables which collect loss, accuracies for each epoch and train phase
     loss_collected = 0
@@ -153,7 +162,8 @@ def main():
         class_0_target_fc2_collect = torch.empty((0,3))
         class_1_target_fc2_collect = torch.empty((0,3))
 
-        
+        f_accuracy_collect = []
+        learning_curve_data_collect = []
         for phase in phases:
 
             #init the dataloader for source and target data for each epoch
@@ -240,11 +250,13 @@ def main():
             running_target_ce_loss = target_ce_loss_collected / len(target_loader[phase])
 
             #store learning curve data in csv
+            """
             if phase == 'ce':
                 f_plots.write(f'{running_acc_source}, {running_acc_target}, {running_source_ce_loss}, {running_target_ce_loss}, {running_mmd_loss}\n')
             else:
                 f_plots.write(f'{running_acc_source}, {running_acc_target}, {running_source_ce_loss}, {running_target_ce_loss}, {running_mmd_loss}, ')
-            
+            """
+            learning_curve_data_collect = learning_curve_data_collect + [running_acc_source, running_acc_target, running_source_ce_loss, running_target_ce_loss, running_mmd_loss]
             #Add train data to tensorboard list
             writer_source[phase].add_scalar(f'accuracy', running_acc_source, epoch)
             writer_target[phase].add_scalar(f'accuracy', running_acc_target, epoch)
@@ -260,11 +272,16 @@ def main():
             mmd_loss_collected = 0
             acc_total_source_collected = 0
             acc_total_target_collected = 0
-                
+            f_accuracy_collect.append(running_acc_source)
+            f_accuracy_collect.append(running_acc_target)
+            print((epoch, phase,running_acc_source))
+            print((epoch, phase, running_acc_target))
+        f_learning_curve_writer.writerow([running_acc_source, running_acc_target, running_source_ce_loss, running_target_ce_loss, running_mmd_loss])
+        f_accuracy_writer.writerow(f_accuracy_collect)
         print(f"Epoch {epoch+1}/{num_epochs} successfull")
+    f_accuracy.close()
+    f_learning_curve.close()
 
-    f_plots.close()
-    
     plotter.plot_distribution()
     plotter.plot_curves()
 
