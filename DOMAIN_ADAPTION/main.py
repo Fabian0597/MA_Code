@@ -16,9 +16,6 @@ from MMD_loss import MMD_loss
 from CNN import CNN
 from Plotter import Plotter
 
-
-
-
 def main():
 
     #unpack arguments for training
@@ -29,7 +26,7 @@ def main():
     num_pool = int(train_params[3])
     print(f"Features of interest: {features_of_interest} Num of epochs: {num_epochs} GAMMA: {GAMMA} num_pool: {num_pool}" )
 
-    #Folder name to store plots and data for that experiment
+    #Folder name to store data for each experiment
     features_of_interest_folder = features_of_interest.replace("/", "_")
     folder_to_store_data = "feature=" + str(features_of_interest_folder) + "_" + "num_epochs=" + str(num_epochs) + "_" + "GAMMA=" + str(GAMMA)
 
@@ -52,17 +49,18 @@ def main():
     if not os.path.exists(path_accuracy): #Folder to store Accuracies of Training
         os.makedirs(path_accuracy)
 
-
+    #init plotter for generating plots from data
     plotter = Plotter(folder_to_store_data)
 
-    # create csv file to store data from learning curves in 
+    # create csv file to store data 
     f_learning_curve = open(f'{folder_to_store_data}/learning_curve_data/learning_curve.csv', 'w')
     f_accuracy = open(f'{folder_to_store_data}/accuracy/accuracies.csv', 'w')
 
-    # create header of csv file for learning curves
+    # create csv writer to store data
     f_learning_curve_writer = csv.writer(f_learning_curve)
     f_learning_curve_writer.writerow(['running_acc_source_val','running_acc_target_val','running_source_ce_loss_val','running_target_ce_loss_val','running_mmd_loss_val','running_acc_source_mmd','running_acc_target_mmd','running_source_ce_loss_mmd','running_target_ce_loss_mmd','running_mmd_loss_mmd','running_acc_source_ce','running_acc_target_ce','running_source_ce_loss_ce','running_target_ce_loss_ce','running_mmd_loss_ce'])
 
+    #header for csv file
     f_accuracy_writer = csv.writer(f_accuracy)
     f_accuracy_writer.writerow(['accuracy_source_val','accuracy_target_val','accuracy_source_mmd','accuracy_target_mmd','accuracy_source_ce','accuracy_target_ce'])
 
@@ -87,7 +85,6 @@ def main():
     writer_target["mmd"] = writer_target_mmd
     writer_target["ce"] = writer_target_ce
 
-
     #Windowing details
     window_size = 1024
     overlap_size = 0
@@ -96,11 +93,11 @@ def main():
     list_of_source_BSD_states = ["2", "3"]#, "11", "12", "20", "21"]
     list_of_target_BSD_states = ["5", "6"]#, "14", "15", "23", "24"]
 
-    #Define path where dataset is stored
+    # Path where dataset is stored
     data_path = Path(os.getcwd()).parents[1]
     data_path = os.path.join(data_path, "data")
 
-    #Generate dataloader
+    # Dataloader
     dataloader_split_ce = 0.6
     dataloader_split_mmd = 0.2
     dataloader_split_val = 0.2
@@ -127,12 +124,10 @@ def main():
     model_cnn =  CNN(input_size, hidden_fc_size_1, num_pool, window_size)
     model_fc = Classifier(hidden_fc_size_1, hidden_fc_size_2, output_size)
 
-
-    #define loss and optimizer
+    # Define Loss
     criterion = torch.nn.CrossEntropyLoss()
     MMD_loss_calculator = MMD_loss(fix_sigma = SIGMA)
     loss_cnn = Loss_CNN(model_cnn, model_fc, criterion, MMD_loss_calculator, MMD_loss_flag_phase, GAMMA)
-
 
     #Optimizer
     optimizer1 = torch.optim.Adam([
@@ -142,16 +137,12 @@ def main():
 
     optimizer2 = torch.optim.Adam(model_fc.parameters(), lr=1e-2, betas=(0.9, 0.999))
 
-
-    #init variables which collect loss, accuracies for each epoch and train phase
-    loss_collected = 0
+    # Init variables which collect loss, accuracies for each epoch and train phase
     source_ce_loss_collected = 0
     target_ce_loss_collected = 0
     mmd_loss_collected = 0
     acc_total_source_collected = 0
     acc_total_target_collected = 0
-
-
 
     # Train and Validate the model
     for epoch in range(num_epochs):
@@ -162,16 +153,19 @@ def main():
         class_0_target_fc2_collect = torch.empty((0,3))
         class_1_target_fc2_collect = torch.empty((0,3))
 
+        #init list to collect data which is stored in one csv file line
         f_accuracy_collect = []
         learning_curve_data_collect = []
+
+        #iterate through phases
         for phase in phases:
 
             #init the dataloader for source and target data for each epoch
             iter_loader_source = iter(source_loader[phase])
             iter_loader_target = iter(target_loader[phase])
 
-            #iterate through phases
-            for i in range(len(iter_loader_source)):
+            #iterate through batches of phase specific dataloader
+            for _ in range(len(iter_loader_source)):
                 
                 ########Forward pass########
                 batch_data_source, labels_source = iter_loader_source.next() #batch_size number of windows and labels from source domain
@@ -186,7 +180,7 @@ def main():
                     with torch.no_grad():
                         _, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, class_0_source_fc2, class_1_source_fc2, class_0_target_fc2, class_1_target_fc2 = loss_cnn.forward(batch_data, labels_source, labels_target)
                         
-                        # collect latent features for plot 
+                        # collect latent features of fc2 for plot 
                         class_0_source_fc2_collect = torch.cat((class_0_source_fc2_collect, class_0_source_fc2), 0)
                         class_1_source_fc2_collect = torch.cat((class_1_source_fc2_collect, class_1_source_fc2), 0)
                         class_0_target_fc2_collect = torch.cat((class_0_target_fc2_collect, class_0_target_fc2), 0)
@@ -214,17 +208,14 @@ def main():
                         loss.backward()
                         optimizer2.step()
 
-                
                 #collect loss, accuracies over an epoch
                 mmd_loss_collected += mmd_loss
                 source_ce_loss_collected += source_ce_loss
                 target_ce_loss_collected += target_ce_loss
                 acc_total_source_collected += acc_total_source
                 acc_total_target_collected += acc_total_target
-                
-                
             
-            # store data distribution in csv
+            # store data distribution in latent feature space fc2 in csv
             if phase == "val" and (epoch ==0 or epoch ==1 or epoch == 10 or epoch ==20):
                 
                 df1 = pd.DataFrame({'class_0_source_fc2_collect_0_dim':class_0_source_fc2_collect[:, 0]})
@@ -241,7 +232,6 @@ def main():
                 df12 = pd.DataFrame({'class_1_target_fc2_collect_2_dim':class_1_target_fc2_collect[:, 2]})
                 pd.concat([df1,df2,df3,df4,df5,df6,df7,df8,df9,df10,df11,df12],axis=1).to_csv(f'{folder_to_store_data}/data_distribution_data/data_distribution_{epoch}.csv', index = False)
 
-            
             # Normalize collected loss, accuracies for each epoch and train phase
             running_mmd_loss = mmd_loss_collected / len(source_loader[phase])
             running_acc_source = acc_total_source_collected / len(source_loader[phase])
@@ -255,28 +245,29 @@ def main():
             writer_source[phase].add_scalar(f'ce_loss', running_source_ce_loss, epoch)
             writer_target[phase].add_scalar(f'ce_loss', running_target_ce_loss, epoch)
             writer_source[phase].add_scalar(f'mmd_loss', running_mmd_loss, epoch)
-            
 
             #Reset variable for collected loss, accuracies for each epoch and train phase
-            loss_collected = 0
             source_ce_loss_collected = 0
             target_ce_loss_collected = 0
             mmd_loss_collected = 0
             acc_total_source_collected = 0
             acc_total_target_collected = 0
 
-            #store learning curve data and accuracies as list in csv
+            #collect data which is stored in one line of csv
             learning_curve_data_collect = learning_curve_data_collect + [running_acc_source, running_acc_target, running_source_ce_loss, running_target_ce_loss, running_mmd_loss]
             f_accuracy_collect = f_accuracy_collect + [running_acc_source, running_acc_target]
 
-        #store learning curve data and accuracies as csv
+        #store write one line in csv 
         f_learning_curve_writer.writerow([running_acc_source, running_acc_target, running_source_ce_loss, running_target_ce_loss, running_mmd_loss])
         f_accuracy_writer.writerow(f_accuracy_collect)
         
         print(f"Epoch {epoch+1}/{num_epochs} successfull")
+
+    #close csv writer for accuracy and learning curves
     f_accuracy.close()
     f_learning_curve.close()
 
+    #plot learning curves and data distribtuion from csv files
     plotter.plot_distribution()
     plotter.plot_curves()
 
