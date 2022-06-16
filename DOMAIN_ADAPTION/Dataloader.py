@@ -1,7 +1,7 @@
 
 from torch.utils.data import DataLoader
 import torch
-
+torch.manual_seed(0)
 from TimeSeriesData import TimeSeriesData
 
 

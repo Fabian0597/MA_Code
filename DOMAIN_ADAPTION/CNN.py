@@ -1,6 +1,7 @@
 
 import torch.nn as nn
 import torch
+torch.manual_seed(0)
 import torch.nn.functional as F
 
 class CNN(nn.Module):

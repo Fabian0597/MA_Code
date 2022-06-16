@@ -1,4 +1,6 @@
 import torch.nn as nn
+import torch
+torch.manual_seed(0)
 
 class Classifier(nn.Module):
     def __init__(self, hidden_fc_size_1, hidden_fc_size_2, output_size):

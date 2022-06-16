@@ -93,8 +93,8 @@ def main():
     overlap_size = 0
 
     # Define which BSD states should be included in source and target domain
-    list_of_source_BSD_states = ["2", "3"]#, "11", "12", "20", "21"]
-    list_of_target_BSD_states = ["5", "6"]#, "14", "15", "23", "24"]
+    list_of_source_BSD_states = ["2", "3", "11", "12"]#, "20", "21"]
+    list_of_target_BSD_states = ["5", "6", "14", "15"]#, "23", "24"]
 
     # Path where dataset is stored
     data_path = Path(os.getcwd()).parents[1]
@@ -139,6 +139,32 @@ def main():
     ], lr=1e-2, betas=(0.9, 0.999))
 
     optimizer2 = torch.optim.Adam(model_fc.parameters(), lr=1e-2, betas=(0.9, 0.999))
+
+    #Safe the Model hyperparameter as txt file
+    f_hyperparameter = open(f'{folder_to_store_data}/best_model/hyperparameter.txt', 'w')
+    f_hyperparameter.write(f'features of interest: {features_of_interest}\n')
+    f_hyperparameter.write(f'num_epochs: {num_epochs}\n')
+    f_hyperparameter.write(f'GAMMA: {GAMMA}\n')
+    f_hyperparameter.write(f'num_pool: {num_pool}\n')
+    f_hyperparameter.write(f'list_of_source_BSD_states: {list_of_source_BSD_states}\n')
+    f_hyperparameter.write(f'list_of_target_BSD_states: {list_of_target_BSD_states}\n')
+    f_hyperparameter.write(f'dataloader_split_ce: {dataloader_split_ce}\n')
+    f_hyperparameter.write(f'dataloader_split_mmd: {dataloader_split_mmd}\n')
+    f_hyperparameter.write(f'dataloader_split_val: {dataloader_split_val}\n')
+    f_hyperparameter.write(f'batch_size: {batch_size}\n')
+    f_hyperparameter.write(f'input_size_CNN: {input_size}\n')
+    f_hyperparameter.write(f'hidden_fc_size_1: {hidden_fc_size_1}\n')
+    f_hyperparameter.write(f'hidden_fc_size_2: {hidden_fc_size_2}\n')
+    f_hyperparameter.write(f'output_size_FC: {output_size}\n')
+    f_hyperparameter.write(f'SIGMA: {SIGMA}\n')
+    f_hyperparameter.write(f'criterion: {criterion}\n')
+    f_hyperparameter.write(f'optimizer1: {optimizer1}\n')
+    f_hyperparameter.write(f'optimizer2: {optimizer2}\n\n')
+    f_hyperparameter.write(f'Model CNN: {model_cnn}\n\n')
+    f_hyperparameter.write(f'Model FC: {model_fc}') 
+    f_hyperparameter.close()
+
+
 
     # Init variables which collect loss, accuracies for each epoch and train phase
     source_ce_loss_collected = 0
@@ -253,6 +279,7 @@ def main():
                     max_target_val_accuracy = running_balanced_target_accuracy
                     torch.save(model_cnn.state_dict(), f'{folder_to_store_data}/best_model/model_cnn.pt')
                     torch.save(model_fc.state_dict(), f'{folder_to_store_data}/best_model/model_fc.pt')
+                print(running_balanced_target_accuracy)
 
             #Add train data to tensorboard list
             writer_source[phase].add_scalar(f'accuracy', running_acc_source, epoch)
