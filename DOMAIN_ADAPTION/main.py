@@ -37,6 +37,7 @@ def main():
     path_data_distribution = os.path.join(current_directory, folder_to_store_data, "data_distribution")
     path_data_distribution_data = os.path.join(current_directory, folder_to_store_data, "data_distribution_data")
     path_accuracy = os.path.join(current_directory, folder_to_store_data, "accuracy")
+    path_best_model = os.path.join(current_directory, folder_to_store_data, "best_model")
 
     if not os.path.exists(path_learning_curve): #Folder to store Learning Curve Plots 
         os.makedirs(path_learning_curve)
@@ -48,6 +49,8 @@ def main():
         os.makedirs(path_data_distribution_data)
     if not os.path.exists(path_accuracy): #Folder to store Accuracies of Training
         os.makedirs(path_accuracy)
+    if not os.path.exists(path_best_model): #Folder to store Accuracies of Training
+        os.makedirs(path_best_model)
 
     #init plotter for generating plots from data
     plotter = Plotter(folder_to_store_data)
@@ -143,6 +146,9 @@ def main():
     mmd_loss_collected = 0
     acc_total_source_collected = 0
     acc_total_target_collected = 0
+    balanced_target_accuracy_collected = 0
+    #init/reset the max validation accuracy which compares the performance of the current model on the validation dataset with the models from previous epochs
+    max_target_val_accuracy = 0
 
     # Train and Validate the model
     for epoch in range(num_epochs):
@@ -153,7 +159,7 @@ def main():
         class_0_target_fc2_collect = torch.empty((0,3))
         class_1_target_fc2_collect = torch.empty((0,3))
 
-        #init list to collect data which is stored in one csv file line
+        #init/reset list to collect data which is stored in one csv file line
         f_accuracy_collect = []
         learning_curve_data_collect = []
 
@@ -178,7 +184,7 @@ def main():
                     model_fc.train(False)
                     
                     with torch.no_grad():
-                        _, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, class_0_source_fc2, class_1_source_fc2, class_0_target_fc2, class_1_target_fc2 = loss_cnn.forward(batch_data, labels_source, labels_target)
+                        _, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, balanced_target_accuracy, class_0_source_fc2, class_1_source_fc2, class_0_target_fc2, class_1_target_fc2 = loss_cnn.forward(batch_data, labels_source, labels_target)
                         
                         # collect latent features of fc2 for plot 
                         class_0_source_fc2_collect = torch.cat((class_0_source_fc2_collect, class_0_source_fc2), 0)
@@ -192,7 +198,7 @@ def main():
                     model_fc.train(True)
                     
                     ######## Forward pass ########
-                    loss, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, _, _, _, _ = loss_cnn.forward(batch_data, labels_source, labels_target)
+                    loss, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, _, _, _, _, _ = loss_cnn.forward(batch_data, labels_source, labels_target)
                     
                     mmd_loss = mmd_loss.detach()
                     source_ce_loss = source_ce_loss.detach()
@@ -214,9 +220,10 @@ def main():
                 target_ce_loss_collected += target_ce_loss
                 acc_total_source_collected += acc_total_source
                 acc_total_target_collected += acc_total_target
+                balanced_target_accuracy_collected += balanced_target_accuracy
             
             # store data distribution in latent feature space fc2 in csv
-            if phase == "val" and (epoch ==0 or epoch ==1 or epoch == 10 or epoch ==20):
+            if phase == "val" and (epoch ==0 or epoch ==5 or epoch == 10 or epoch ==20):
                 
                 df1 = pd.DataFrame({'class_0_source_fc2_collect_0_dim':class_0_source_fc2_collect[:, 0]})
                 df2 = pd.DataFrame({'class_0_source_fc2_collect_1_dim':class_0_source_fc2_collect[:, 1]})
@@ -238,6 +245,14 @@ def main():
             running_acc_target = acc_total_target_collected / len(target_loader[phase])
             running_source_ce_loss = source_ce_loss_collected / len(source_loader[phase])
             running_target_ce_loss = target_ce_loss_collected / len(target_loader[phase])
+            running_balanced_target_accuracy = balanced_target_accuracy_collected / len(target_loader[phase])
+
+            #In each epoch check the average target accuracy of the model on the validation set and store model if it performed better than in the previous epochs
+            if phase == "val":
+                if max_target_val_accuracy < running_balanced_target_accuracy:
+                    max_target_val_accuracy = running_balanced_target_accuracy
+                    torch.save(model_cnn.state_dict(), f'{folder_to_store_data}/best_model/model_cnn.pt')
+                    torch.save(model_fc.state_dict(), f'{folder_to_store_data}/best_model/model_fc.pt')
 
             #Add train data to tensorboard list
             writer_source[phase].add_scalar(f'accuracy', running_acc_source, epoch)
@@ -252,6 +267,7 @@ def main():
             mmd_loss_collected = 0
             acc_total_source_collected = 0
             acc_total_target_collected = 0
+            balanced_target_accuracy_collected = 0
 
             #collect data which is stored in one line of csv
             learning_curve_data_collect = learning_curve_data_collect + [running_acc_source, running_acc_target, running_source_ce_loss, running_target_ce_loss, running_mmd_loss]

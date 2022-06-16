@@ -61,7 +61,26 @@ class Loss_CNN():
         result_target_pred = argmax_target_pred == labels_target
         correct_target_pred = result_target_pred[result_target_pred == True]
         acc_total_target = 100 * len(correct_target_pred)/len(labels_target)
+
+        #Balanced Accuracy Target
+        result_target_pred_class_0 = result_target_pred[labels_target == 0]
+        result_target_pred_class_1 = result_target_pred[labels_target == 1]
+        correct_target_pred_class_0 = result_target_pred_class_0[result_target_pred_class_0 == True]
+        correct_target_pred_class_1 = result_target_pred_class_1[result_target_pred_class_1 == True]
         
+        #Specifity
+        if len(labels_target[labels_target==0]) == 0:
+            acc_total_target_class_0 = 0
+        else:
+            acc_total_target_class_0 = 100 * len(correct_target_pred_class_0)/len(labels_target[labels_target==0])
+        
+        #Sensitifity
+        if len(labels_target[labels_target==1]) == 0:
+            acc_total_target_class_1 = 0
+        else:
+            acc_total_target_class_1 = 100 * len(correct_target_pred_class_1)/len(labels_target[labels_target==1])
+
+        balanced_target_accuracy = (acc_total_target_class_0 + acc_total_target_class_1)/2
 
         # Separation between MMD and CE Train Phase
         if self.MMD_loss_flag_phase == True:
@@ -70,5 +89,5 @@ class Loss_CNN():
             loss = source_ce_loss
 
         
-        return loss, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, class_0_source_fc2, class_1_source_fc2, class_0_target_fc2, class_1_target_fc2
+        return loss, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, balanced_target_accuracy, class_0_source_fc2, class_1_source_fc2, class_0_target_fc2, class_1_target_fc2
     
