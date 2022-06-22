@@ -14,7 +14,7 @@ from Loss_CNN import Loss_CNN
 from Classifier import Classifier
 from MMD_loss import MMD_loss
 from CNN import CNN
-from Plotter import Plotter
+from plotter import Plotter
 
 def main():
 
@@ -26,6 +26,11 @@ def main():
     GAMMA = float(train_params[2])
     num_pool = int(train_params[3])
     #print(f"Features of interest: {features_of_interest} Num of epochs: {num_epochs} GAMMA: {GAMMA} num_pool: {num_pool}" )
+    
+    # check if CUDA is available
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"the device for executing the code is: {device}")
+
 
     #Folder name to store data for each experiment
     #features_of_interest_folder = features_of_interest.replace("/", "_")
@@ -129,6 +134,13 @@ def main():
     model_cnn =  CNN(input_size, hidden_fc_size_1, num_pool, window_size)
     model_fc = Classifier(hidden_fc_size_1, hidden_fc_size_2, output_size)
 
+    #models to gpu if available
+    model_cnn = model_cnn.to(device)
+    model_fc = model_fc.to(device)
+    
+    if (next(model_cnn.parameters()).is_cuda and next(model_fc.parameters()).is_cuda):
+        print("Models are on GPU!!")
+
     # Define Loss
     criterion = torch.nn.CrossEntropyLoss()
     MMD_loss_calculator = MMD_loss(fix_sigma = SIGMA)
@@ -210,6 +222,11 @@ def main():
                 batch_data_source, labels_source = iter_loader_source.next() #batch_size number of windows and labels from source domain
                 batch_data_target, labels_target = iter_loader_target.next() #batch_size number of windows from target domain
                 batch_data = torch.cat((batch_data_source, batch_data_target), dim=0) #concat the windows to 2*batch_size number of windows
+
+                batch_data = batch_data.to(device)
+                
+                if batch_data.is_cuda and labels_source.is_cuda and labels_target.is_cuda:
+                    print("Samples are all on GPU !!")
 
                 #validation
                 if phase == "val":

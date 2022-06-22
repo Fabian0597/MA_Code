@@ -15,6 +15,17 @@ class Loss_CNN():
         x_conv_1, x_conv_2, x_conv_3, x_flatten, x_fc1 = self.model_cnn(batch_data.float())
         x_fc2, x_fc3 = self.model_fc(x_fc1)
         
+        x_conv_1 = x_conv_1.to("cpu")
+        x_conv_2 = x_conv_2.to("cpu")
+        x_conv_3 = x_conv_3.to("cpu")
+        x_flatten = x_flatten.to("cpu")
+        x_fc1 = x_fc1.to("cpu")
+        x_fc2 = x_fc2.to("cpu")
+        x_fc3 = x_fc3.to("cpu")
+
+        if x_conv_1.is_cuda:
+            print("Latent output of model is also on GPU and might cause problems in criterion")
+
         batch_size = len(labels_source)   
 
         #CE Loss
