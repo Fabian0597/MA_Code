@@ -4,7 +4,7 @@
 
 feature_of_interest="C:s_ist/X"
 num_epochs=10
-GAMMAs=(0.5 1 1.5 2 2.5 3)
+GAMMAs=(0.8 1 1.2 1.5 1.7 2 2.2 2.5)
 num_pool=1
 
 for GAMMA in ${GAMMAs[@]}; do

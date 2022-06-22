@@ -20,15 +20,17 @@ def main():
 
     #unpack arguments for training
     train_params = sys.argv[1:]
-    features_of_interest = train_params[0]
+    #features_of_interest = train_params[0]
+    features_of_interest = ["C:x_bottom"]
     num_epochs = int(train_params[1])
     GAMMA = float(train_params[2])
     num_pool = int(train_params[3])
-    print(f"Features of interest: {features_of_interest} Num of epochs: {num_epochs} GAMMA: {GAMMA} num_pool: {num_pool}" )
+    #print(f"Features of interest: {features_of_interest} Num of epochs: {num_epochs} GAMMA: {GAMMA} num_pool: {num_pool}" )
 
     #Folder name to store data for each experiment
-    features_of_interest_folder = features_of_interest.replace("/", "_")
-    folder_to_store_data = "feature=" + str(features_of_interest_folder) + "_" + "num_epochs=" + str(num_epochs) + "_" + "GAMMA=" + str(GAMMA)
+    #features_of_interest_folder = features_of_interest.replace("/", "_")
+    #folder_to_store_data = "feature=" + str(features_of_interest_folder) + "_" + "num_epochs=" + str(num_epochs) + "_" + "GAMMA=" + str(GAMMA)
+    folder_to_store_data = "GAMMA=" + str(GAMMA)
 
     #Generate folder structure to store plots and data
     current_directory = os.getcwd()
@@ -93,8 +95,8 @@ def main():
     overlap_size = 0
 
     # Define which BSD states should be included in source and target domain
-    list_of_source_BSD_states = ["2", "3", "11", "12"]#, "20", "21"]
-    list_of_target_BSD_states = ["5", "6", "14", "15"]#, "23", "24"]
+    list_of_source_BSD_states = ["2", "3", "11", "12", "20", "21"]
+    list_of_target_BSD_states = ["5", "6", "14", "15", "23", "24"]
 
     # Path where dataset is stored
     data_path = Path(os.getcwd()).parents[1]
@@ -120,7 +122,7 @@ def main():
     MMD_loss_flag_phase["ce"] = False
 
     #Models
-    input_size = 1
+    input_size = len(features_of_interest)
     hidden_fc_size_1 = 50
     hidden_fc_size_2 = 3
     output_size = 2
@@ -135,7 +137,7 @@ def main():
     #Optimizer
     optimizer1 = torch.optim.Adam([
     {'params': model_cnn.parameters()},
-    {'params': model_fc.parameters(), 'lr': 1e-2}
+    {'params': model_fc.parameters(), 'lr': 1e-4}
     ], lr=1e-2, betas=(0.9, 0.999))
 
     optimizer2 = torch.optim.Adam(model_fc.parameters(), lr=1e-2, betas=(0.9, 0.999))
@@ -173,8 +175,13 @@ def main():
     acc_total_source_collected = 0
     acc_total_target_collected = 0
     balanced_target_accuracy_collected = 0
-    #init/reset the max validation accuracy which compares the performance of the current model on the validation dataset with the models from previous epochs
+
+    #store data about best performing model (balanced accuracy on validation set)
     max_target_val_accuracy = 0
+    best_GAMMA = None
+    best_features_of_interest = None
+    best_pool = None
+
 
     # Train and Validate the model
     for epoch in range(num_epochs):
@@ -277,9 +284,12 @@ def main():
             if phase == "val":
                 if max_target_val_accuracy < running_balanced_target_accuracy:
                     max_target_val_accuracy = running_balanced_target_accuracy
+                    print(running_balanced_target_accuracy)
                     torch.save(model_cnn.state_dict(), f'{folder_to_store_data}/best_model/model_cnn.pt')
                     torch.save(model_fc.state_dict(), f'{folder_to_store_data}/best_model/model_fc.pt')
-                print(running_balanced_target_accuracy)
+                    best_GAMMA = GAMMA
+                    best_features_of_interest = features_of_interest
+                    best_pool = num_pool
 
             #Add train data to tensorboard list
             writer_source[phase].add_scalar(f'accuracy', running_acc_source, epoch)
@@ -313,6 +323,8 @@ def main():
     #plot learning curves and data distribtuion from csv files
     plotter.plot_distribution()
     plotter.plot_curves()
+
+    print(f"With an Accuracy of: {max_target_val_accuracy} the model with the following hyperparameter performed best:\nbest_features_of_interest: {best_features_of_interest}\nbest_GAMMA: {best_GAMMA}\nbest_pool: {best_pool}")
 
 if __name__ == "__main__":
     main()
