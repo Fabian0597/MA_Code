@@ -44,8 +44,7 @@ def main():
 
     #Folder name to store data for each experiment
     features_of_interest_folder = features_of_interest[0].replace("/", "_")
-    #folder_to_store_data = "feature=" + str(features_of_interest_folder) + "_" + "num_epochs=" + str(num_epochs) + "_" + "GAMMA=" + str(GAMMA)
-    folder_to_store_data = "experiments/feature=" + str(features_of_interest_folder)
+    folder_to_store_data = "experiments/feature=" + str(features_of_interest_folder) + "_" + "_" + "GAMMA=" + str(GAMMA)
 
     #Generate folder structure to store plots and data
     current_directory = os.getcwd()
