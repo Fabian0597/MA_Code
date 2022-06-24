@@ -10,9 +10,9 @@ features_of_interest=("C:s_ist/X" "C:s_soll/X" "C:s_diff/X" "C:v_(n_ist)/X" "C:v
         "S:x_nut" "S:y_nut" "S:z_nut" "S:x_top" "S:y_top" "S:z_top" "S:Nominal_rotational_speed[rad/s]"
         "S:Actual_rotational_speed[µm/s]" "S:Actual_position_of_the_position_encoder(dy/dt)[µm/s]"
         "S:Actual_position_of_the_motor_encoder(dy/dt)[µm/s]")
-num_epochs=10
-GAMMA=1.8
-num_pool=1
+num_epochs=30
+GAMMA=2
+num_pool=2
 
 for feature_of_interest in ${features_of_interest[@]}; do
   python3 main.py $feature_of_interest $num_epochs $GAMMA $num_pool

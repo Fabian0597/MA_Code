@@ -28,8 +28,8 @@ from Dataloader_prep_dataset import Dataloader_prep_dataset
 def main():
     #unpack arguments for training
     train_params = sys.argv[1:]
-    #features_of_interest = train_params[0]
-    features_of_interest = ['C:s_ist/X']#"C:x_bottom"]
+    features_of_interest = [train_params[0]]
+    #features_of_interest = ['C:s_ist/X']#"C:x_bottom"]
     num_epochs = int(train_params[1])
     GAMMA = float(train_params[2])
     num_pool = int(train_params[3])
@@ -43,9 +43,9 @@ def main():
     random_seed = random.randrange(0,100)
 
     #Folder name to store data for each experiment
-    #features_of_interest_folder = features_of_interest.replace("/", "_")
+    features_of_interest_folder = features_of_interest[0].replace("/", "_")
     #folder_to_store_data = "feature=" + str(features_of_interest_folder) + "_" + "num_epochs=" + str(num_epochs) + "_" + "GAMMA=" + str(GAMMA)
-    folder_to_store_data = "GAMMA=" + str(GAMMA)
+    folder_to_store_data = "feature=" + str(features_of_interest_folder)
 
     #Generate folder structure to store plots and data
     current_directory = os.getcwd()
@@ -110,8 +110,8 @@ def main():
     overlap_size = 0
 
     # Define which BSD states should be included in source and target domain
-    list_of_source_BSD_states = ["2", "3"]#, "11", "12", "20", "21"]
-    list_of_target_BSD_states = ["5", "6"]#, "14", "15", "23", "24"]
+    list_of_source_BSD_states = ["2", "3", "11", "12", "20", "21"]
+    list_of_target_BSD_states = ["5", "6", "14", "15", "23", "24"]
 
     # Path where dataset is stored
     data_path = Path(os.getcwd()).parents[1]
