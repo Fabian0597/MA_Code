@@ -83,15 +83,15 @@ class TimeSeriesData_prep_dataset(Dataset):
         X_data, y_data = self.del_nan_element(X_data, y_data) #delete all elements with any nan feature
         X_data, y_data = self.split_data(X_data, y_data) #window the data
 
-        print(f"X_data: {X_data}, shape:{np.shape(X_data)}")
-        print(f"y_data: {y_data}, shape:{np.shape(y_data)}")
+        #print(f"X_data: {X_data}, shape:{np.shape(X_data)}")
+        #print(f"y_data: {y_data}, shape:{np.shape(y_data)}")
 
         array_to_check_y = np.tile(np.expand_dims(np.expand_dims(y_data[:,0,0],axis=1), axis=1),(np.shape(y_data)[1],1))
         mask = np.squeeze(np.all(array_to_check_y==y_data, axis = 1), axis=1)
         X_data = X_data[mask,:,:]
         y_data = y_data[mask,:,:]
-        print(f"y_data: {y_data}, shape:{np.shape(y_data)}")
-        print(f"X_data: {X_data}, shape:{np.shape(X_data)}")
+        #print(f"y_data: {y_data}, shape:{np.shape(y_data)}")
+        #print(f"X_data: {X_data}, shape:{np.shape(X_data)}")
         assert np.all(array_to_check_y[mask,:,:] == y_data)
         y_data = y_data[:,0,0]
         X_data = np.swapaxes(X_data,1,2) #swap axes for CNN

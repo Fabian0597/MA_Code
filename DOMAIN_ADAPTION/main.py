@@ -110,8 +110,8 @@ def main():
     overlap_size = 0
 
     # Define which BSD states should be included in source and target domain
-    list_of_source_BSD_states = ["2", "3", "11", "12", "20", "21"]
-    list_of_target_BSD_states = ["5", "6", "14", "15", "23", "24"]
+    list_of_source_BSD_states = ["2", "3"]#, "11", "12", "20", "21"]
+    list_of_target_BSD_states = ["5", "6"]#, "14", "15", "23", "24"]
 
     # Path where dataset is stored
     data_path = Path(os.getcwd()).parents[1]
@@ -126,7 +126,7 @@ def main():
 
 
     ###Variant 2 ###
-    """
+    
     source_numpy_array_names = ["source_X", "source_y"]
     target_numpy_array_names = ["target_X", "target_y"]
     preprocessor_source = Preprocessor(data_path, list_of_source_BSD_states, window_size, overlap_size, features_of_interest, source_numpy_array_names)
@@ -139,14 +139,14 @@ def main():
     dataloader_target = Dataloader_prep_dataset(dataset_target, dataloader_split_ce, dataloader_split_mmd, dataloader_split_val, batch_size, random_seed)
     source_loader = dataloader_source.create_dataloader()
     target_loader = dataloader_target.create_dataloader()
-    """
-    ###Variant 1####
     
+    ###Variant 1####
+    """
     dataloader_source = Dataloader(data_path, list_of_source_BSD_states, window_size, overlap_size, features_of_interest, dataloader_split_ce, dataloader_split_mmd, dataloader_split_val, batch_size, random_seed)
     dataloader_target = Dataloader(data_path, list_of_target_BSD_states, window_size, overlap_size, features_of_interest, dataloader_split_ce, dataloader_split_mmd, dataloader_split_val, batch_size, random_seed)
     source_loader = dataloader_source.create_dataloader()
     target_loader = dataloader_target.create_dataloader()
-    
+    """
 
     #define Sigma for MMD Loss
     SIGMA = torch.tensor([1,2,4,8,16],dtype=torch.float64)

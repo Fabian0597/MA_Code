@@ -118,7 +118,7 @@ class Preprocessor:
             data_folders[state_dictionary[element]]=os.listdir(os.path.join(self.data_path,state_dictionary[element]))
         return data_folders
 
-    def get_features(self, path):
+    def get_features(self, data_folders):
         """
         Creates a list of all feature names
         INPUT:
@@ -135,8 +135,11 @@ class Preprocessor:
         'S:Actual_rotational_speed[µm/s]', 'S:Actual_position_of_the_position_encoder(dy/dt)[µm/s]',
         'S:Actual_position_of_the_motor_encoder(dy/dt)[µm/s]']
         """
-        
-        with open(path, 'r') as file:
+        first_BSD_path = list(data_folders.keys())[0]
+        first_file_path = data_folders[first_BSD_path][0]
+        path_BSD_file = os.path.join(self.data_path, first_BSD_path, first_file_path) 
+
+        with open(path_BSD_file, 'r') as file:
             csvreader = csv.reader(file)
             features = next(csvreader)
         return features
@@ -161,24 +164,21 @@ class Preprocessor:
         y_data_concatenated = None
 
         data_folders = self.create_folder_dictionary()
+        features = self.get_features(data_folders)
         
         iterator = 0
         first = True
+        if os.path.isfile(os.path.join(self.data_path, self.numpy_array_names[0])+".npy") and os.path.isfile(os.path.join(self.data_path, self.numpy_array_names[1])+".npy"):
+            print (f"CSV files: are already saved as numpy array {self.numpy_array_names[0]} and {self.numpy_array_names[1]}")
+            return features
+
         
         for BSD_path in data_folders.keys(): #folder path
             for file_path in data_folders[BSD_path]: #file path 
                 path_BSD_file = os.path.join(self.data_path, BSD_path, file_path) # concatenate the data_path, folder and file path
-                #in first iteration get a list if all features
-                if first == True:
-                    features = self.get_features(path_BSD_file)
-                    
+
+                #get numpy array from CSV
                 data_BSD_file = np.genfromtxt(path_BSD_file, dtype = np.dtype('d'), delimiter=',')[1:,:] #write csv in numpy
-                #feature_index_list = np.where(np.isin(features, features_of_interest)) #get index for all features of interest
-                #data_BSD_file = data_BSD_file[:,feature_index_list] #slice numpy array such that just features of interest are included
-                #data_BSD_file = np.squeeze(data_BSD_file, axis = 1) # one unnecessary extra dimension was created while slicing
-                #data_BSD_file = self.del_nan_element(data_BSD_file) #delete all elements with any nan feature
-                #data_BSD_file = self.split_data(data_BSD_file) #window the data
-                #data_BSD_file = np.swapaxes(data_BSD_file,1,2) #swap axes for CNN
                 
                 #rewrite labels as BSD_condition_1 = 0, BSD_condition_2 = 1, BSD_condition_3 = 2, BSD_condition_P1 = 3
                 label = BSD_path[-2] #take the first number of the BSD state for class label
