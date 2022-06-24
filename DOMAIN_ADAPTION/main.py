@@ -45,7 +45,7 @@ def main():
     #Folder name to store data for each experiment
     features_of_interest_folder = features_of_interest[0].replace("/", "_")
     #folder_to_store_data = "feature=" + str(features_of_interest_folder) + "_" + "num_epochs=" + str(num_epochs) + "_" + "GAMMA=" + str(GAMMA)
-    folder_to_store_data = "feature=" + str(features_of_interest_folder)
+    folder_to_store_data = "experiments/feature=" + str(features_of_interest_folder)
 
     #Generate folder structure to store plots and data
     current_directory = os.getcwd()
@@ -68,6 +68,12 @@ def main():
         os.makedirs(path_accuracy)
     if not os.path.exists(path_best_model): #Folder to store Accuracies of Training
         os.makedirs(path_best_model)
+
+
+    #################
+    #   Training    #
+    #################
+
 
     #init plotter for generating plots from data
     plotter = Plotter(folder_to_store_data)
@@ -124,9 +130,7 @@ def main():
 
     batch_size = 32
 
-
     ###Variant 2 ###
-    
     source_numpy_array_names = ["source_X", "source_y"]
     target_numpy_array_names = ["target_X", "target_y"]
     preprocessor_source = Preprocessor(data_path, list_of_source_BSD_states, window_size, overlap_size, features_of_interest, source_numpy_array_names)
@@ -162,7 +166,7 @@ def main():
     hidden_fc_size_1 = 50
     hidden_fc_size_2 = 3
     output_size = 2
-    model_cnn =  CNN(input_size, hidden_fc_size_1, num_pool, window_size, random_seed)
+    model_cnn = CNN(input_size, hidden_fc_size_1, num_pool, window_size, random_seed)
     model_fc = Classifier(hidden_fc_size_1, hidden_fc_size_2, output_size, random_seed)
 
     #models to gpu if available
@@ -186,7 +190,7 @@ def main():
     optimizer2 = torch.optim.Adam(model_fc.parameters(), lr=1e-2, betas=(0.9, 0.999))
 
     #Safe the random seed as txt file
-    f_random_seed = open(f'{folder_to_store_data}/best_model/f_random_seed.txt', 'w')
+    f_random_seed = open(f'{folder_to_store_data}/best_model/random_seed.txt', 'w')
     f_random_seed.write(str(random_seed))
     f_random_seed.close()
 
@@ -378,6 +382,45 @@ def main():
     plotter.plot_curves()
 
     print(f"With an Accuracy of: {max_target_val_accuracy} the model with the following hyperparameter performed best:\nbest_features_of_interest: {best_features_of_interest}\nbest_GAMMA: {best_GAMMA}\nbest_pool: {best_pool}")
+
+    ################
+    #   Testing    #
+    ################
+
+    model_cnn_test =  CNN(input_size, hidden_fc_size_1, num_pool, window_size, random_seed)
+    model_cnn_test.load_state_dict(torch.load(f'{folder_to_store_data}/best_model/model_cnn.pt'))
+    model_cnn_test.eval()
+
+    model_fc_test = Classifier(hidden_fc_size_1, hidden_fc_size_2, output_size, random_seed)
+    model_fc_test.load_state_dict(torch.load(f'{folder_to_store_data}/best_model/model_fc.pt'))
+    model_fc_test.eval() 
+
+    acc_total_target_test_collected = 0
+
+    test_loader_target = iter(target_loader["test"])
+    #iterate through batches of phase specific dataloader
+    for _ in range(len(test_loader_target)):
+                
+        ########Forward pass########
+        batch_data_target_test, labels_target_test = test_loader_target.next() #batch_size number of windows from target domain
+        _, _, _, _, x_fc1_test = model_cnn_test(batch_data_target_test.float())
+        _, x_fc3_test = model_fc_test(x_fc1_test)
+
+        #Accuracy Test
+        argmax_target_test_pred = torch.argmax(x_fc3_test[:batch_size, :], dim=1)
+        result_target_test_pred = argmax_target_test_pred == labels_target_test
+        correct_target_test_pred = result_target_test_pred[result_target_test_pred == True]
+        acc_total_target_test = 100 * len(correct_target_test_pred)/len(labels_target_test)
+        acc_total_target_test_collected += acc_total_target_test
+
+    running_acc_target_test = acc_total_target_test_collected / len(test_loader_target)
+    #Safe the random seed as txt file
+    f_target_test_accuracy = open(f'{folder_to_store_data}/best_model/target_test_accuracy.txt', 'w')
+    f_target_test_accuracy.write(str(running_acc_target_test))
+    f_target_test_accuracy.close()
+
+
+
 
 if __name__ == "__main__":
     main()
