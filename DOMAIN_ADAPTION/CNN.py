@@ -1,11 +1,10 @@
 
 import torch.nn as nn
 import torch
-torch.manual_seed(0)
 import torch.nn.functional as F
 
 class CNN(nn.Module):
-    def __init__(self, input_size, hidden_fc_size_1, num_pool, window_size):
+    def __init__(self, input_size, hidden_fc_size_1, num_pool, window_size, random_seed):
         super(CNN, self).__init__()
         
         self.num_pool = num_pool
@@ -21,6 +20,8 @@ class CNN(nn.Module):
         self.batch2 =nn.BatchNorm1d(32) #299
         self.pool3 = nn.MaxPool1d(5, stride=3) #((98+2*0-1*(5-1)-1)/3)+1 = 3
         self.fc1 = nn.Linear(self.input_fc_size, hidden_fc_size_1)
+
+        torch.manual_seed(random_seed)
 
     def forward(self, x):
         x_conv_1 = self.conv1(x) #conv1

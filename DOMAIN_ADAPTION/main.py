@@ -4,24 +4,32 @@ import csv
 import pandas as pd
 from pathlib import Path
 import matplotlib.pyplot as plt
+import random
 
 import torch
 
 from torch.utils.tensorboard import SummaryWriter
 
+#variant1
 from Dataloader import Dataloader
+
 from Loss_CNN import Loss_CNN
 from Classifier import Classifier
 from MMD_loss import MMD_loss
 from CNN import CNN
 from plotter import Plotter
 
-def main():
+#variant2
+from Preprocesser import Preprocessor
+from TimeSeriesData_prep_dataset import TimeSeriesData_prep_dataset
+from Dataloader_prep_dataset import Dataloader_prep_dataset
 
+
+def main():
     #unpack arguments for training
     train_params = sys.argv[1:]
     #features_of_interest = train_params[0]
-    features_of_interest = ["C:x_bottom"]
+    features_of_interest = ['C:s_ist/X']#"C:x_bottom"]
     num_epochs = int(train_params[1])
     GAMMA = float(train_params[2])
     num_pool = int(train_params[3])
@@ -31,6 +39,8 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"the device for executing the code is: {device}")
 
+    #create random seeds
+    random_seed = random.randrange(0,100)
 
     #Folder name to store data for each experiment
     #features_of_interest_folder = features_of_interest.replace("/", "_")
@@ -108,14 +118,35 @@ def main():
     data_path = os.path.join(data_path, "data")
 
     # Dataloader
-    dataloader_split_ce = 0.6
+    dataloader_split_ce = 0.4
     dataloader_split_mmd = 0.2
     dataloader_split_val = 0.2
+
     batch_size = 32
-    dataloader_source = Dataloader(data_path, list_of_source_BSD_states, window_size, overlap_size, features_of_interest, dataloader_split_ce, dataloader_split_mmd, dataloader_split_val, batch_size)
-    dataloader_target = Dataloader(data_path, list_of_target_BSD_states, window_size, overlap_size, features_of_interest, dataloader_split_ce, dataloader_split_mmd, dataloader_split_val, batch_size)
+
+
+    ###Variant 2 ###
+    """
+    source_numpy_array_names = ["source_X", "source_y"]
+    target_numpy_array_names = ["target_X", "target_y"]
+    preprocessor_source = Preprocessor(data_path, list_of_source_BSD_states, window_size, overlap_size, features_of_interest, source_numpy_array_names)
+    preprocessor_target = Preprocessor(data_path, list_of_target_BSD_states, window_size, overlap_size, features_of_interest, target_numpy_array_names)
+    features  = preprocessor_source.concatenate_data_from_BSD_state()
+    _ = preprocessor_target.concatenate_data_from_BSD_state()
+    dataset_source = TimeSeriesData_prep_dataset(data_path, window_size, overlap_size, source_numpy_array_names, features, features_of_interest)
+    dataset_target = TimeSeriesData_prep_dataset(data_path, window_size, overlap_size, target_numpy_array_names, features, features_of_interest)
+    dataloader_source = Dataloader_prep_dataset(dataset_source, dataloader_split_ce, dataloader_split_mmd, dataloader_split_val, batch_size, random_seed)
+    dataloader_target = Dataloader_prep_dataset(dataset_target, dataloader_split_ce, dataloader_split_mmd, dataloader_split_val, batch_size, random_seed)
     source_loader = dataloader_source.create_dataloader()
     target_loader = dataloader_target.create_dataloader()
+    """
+    ###Variant 1####
+    
+    dataloader_source = Dataloader(data_path, list_of_source_BSD_states, window_size, overlap_size, features_of_interest, dataloader_split_ce, dataloader_split_mmd, dataloader_split_val, batch_size, random_seed)
+    dataloader_target = Dataloader(data_path, list_of_target_BSD_states, window_size, overlap_size, features_of_interest, dataloader_split_ce, dataloader_split_mmd, dataloader_split_val, batch_size, random_seed)
+    source_loader = dataloader_source.create_dataloader()
+    target_loader = dataloader_target.create_dataloader()
+    
 
     #define Sigma for MMD Loss
     SIGMA = torch.tensor([1,2,4,8,16],dtype=torch.float64)
@@ -131,8 +162,8 @@ def main():
     hidden_fc_size_1 = 50
     hidden_fc_size_2 = 3
     output_size = 2
-    model_cnn =  CNN(input_size, hidden_fc_size_1, num_pool, window_size)
-    model_fc = Classifier(hidden_fc_size_1, hidden_fc_size_2, output_size)
+    model_cnn =  CNN(input_size, hidden_fc_size_1, num_pool, window_size, random_seed)
+    model_fc = Classifier(hidden_fc_size_1, hidden_fc_size_2, output_size, random_seed)
 
     #models to gpu if available
     model_cnn = model_cnn.to(device)
@@ -153,6 +184,11 @@ def main():
     ], lr=1e-2, betas=(0.9, 0.999))
 
     optimizer2 = torch.optim.Adam(model_fc.parameters(), lr=1e-2, betas=(0.9, 0.999))
+
+    #Safe the random seed as txt file
+    f_random_seed = open(f'{folder_to_store_data}/best_model/f_random_seed.txt', 'w')
+    f_random_seed.write(str(random_seed))
+    f_random_seed.close()
 
     #Safe the Model hyperparameter as txt file
     f_hyperparameter = open(f'{folder_to_store_data}/best_model/hyperparameter.txt', 'w')
