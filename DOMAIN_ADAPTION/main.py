@@ -301,9 +301,9 @@ def main():
                         optimizer2.step()
 
                 #collect loss, accuracies over an epoch
-                mmd_loss_collected += mmd_loss
-                source_ce_loss_collected += source_ce_loss
-                target_ce_loss_collected += target_ce_loss
+                mmd_loss_collected += mmd_loss.item()
+                source_ce_loss_collected += source_ce_loss.item()
+                target_ce_loss_collected += target_ce_loss.item()
                 acc_total_source_collected += acc_total_source
                 acc_total_target_collected += acc_total_target
                 balanced_target_accuracy_collected += balanced_target_accuracy
@@ -351,6 +351,10 @@ def main():
             writer_target[phase].add_scalar(f'ce_loss', running_target_ce_loss, epoch)
             writer_source[phase].add_scalar(f'mmd_loss', running_mmd_loss, epoch)
 
+            #collect data which is stored in one line of csv
+            learning_curve_data_collect = learning_curve_data_collect + [running_acc_source, running_acc_target, running_source_ce_loss, running_target_ce_loss, running_mmd_loss]
+            f_accuracy_collect = f_accuracy_collect + [running_acc_source, running_acc_target]
+
             #Reset variable for collected loss, accuracies for each epoch and train phase
             source_ce_loss_collected = 0
             target_ce_loss_collected = 0
@@ -359,12 +363,8 @@ def main():
             acc_total_target_collected = 0
             balanced_target_accuracy_collected = 0
 
-            #collect data which is stored in one line of csv
-            learning_curve_data_collect = learning_curve_data_collect + [running_acc_source, running_acc_target, running_source_ce_loss, running_target_ce_loss, running_mmd_loss]
-            f_accuracy_collect = f_accuracy_collect + [running_acc_source, running_acc_target]
-
         #store write one line in csv 
-        f_learning_curve_writer.writerow([running_acc_source, running_acc_target, running_source_ce_loss, running_target_ce_loss, running_mmd_loss])
+        f_learning_curve_writer.writerow(learning_curve_data_collect)
         f_accuracy_writer.writerow(f_accuracy_collect)
         
         print(f"Epoch {epoch+1}/{num_epochs} successfull")
