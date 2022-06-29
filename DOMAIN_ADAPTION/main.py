@@ -178,7 +178,7 @@ def main():
     # Define Loss
     criterion = torch.nn.CrossEntropyLoss()
     MMD_loss_calculator = MMD_loss(fix_sigma = SIGMA)
-    loss_cnn = Loss_CNN(model_cnn, model_fc, criterion, MMD_loss_calculator, MMD_loss_flag_phase, GAMMA)
+    loss_cnn = Loss_CNN(model_cnn, model_fc, criterion, MMD_loss_calculator, GAMMA)
 
     #Optimizer
     optimizer1 = torch.optim.Adam([
@@ -273,7 +273,7 @@ def main():
                     model_fc.train(False)
                     
                     with torch.no_grad():
-                        _, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, balanced_target_accuracy, class_0_source_fc2, class_1_source_fc2, class_0_target_fc2, class_1_target_fc2 = loss_cnn.forward(batch_data, labels_source, labels_target)
+                        _, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, balanced_target_accuracy, class_0_source_fc2, class_1_source_fc2, class_0_target_fc2, class_1_target_fc2 = loss_cnn.forward(batch_data, labels_source, labels_target, MMD_loss_flag_phase[phase])
                         
                         # collect latent features of fc2 for plot 
                         class_0_source_fc2_collect = torch.cat((class_0_source_fc2_collect, class_0_source_fc2), 0)
@@ -287,7 +287,7 @@ def main():
                     model_fc.train(True)
                     
                     ######## Forward pass ########
-                    loss, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, _, _, _, _, _ = loss_cnn.forward(batch_data, labels_source, labels_target)
+                    loss, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, _, _, _, _, _ = loss_cnn.forward(batch_data, labels_source, labels_target, MMD_loss_flag_phase[phase])
                     
                     mmd_loss = mmd_loss.detach()
                     source_ce_loss = source_ce_loss.detach()

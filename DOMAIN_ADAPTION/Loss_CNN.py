@@ -1,16 +1,15 @@
 import torch
 
 class Loss_CNN():
-    def __init__(self, model_cnn, model_fc, criterion, MMD_loss_calculator, MMD_loss_flag_phase, GAMMA):
+    def __init__(self, model_cnn, model_fc, criterion, MMD_loss_calculator, GAMMA):
         self.model_cnn = model_cnn
         self.model_fc = model_fc
         self.criterion = criterion
         self.MMD_loss_calculator = MMD_loss_calculator
-        self.MMD_loss_flag_phase = MMD_loss_flag_phase
         self.GAMMA = GAMMA
 
     
-    def forward(self, batch_data, labels_source, labels_target):
+    def forward(self, batch_data, labels_source, labels_target, mmd_loss_flag_phase):
         #Feature extraction
         x_conv_1, x_conv_2, x_conv_3, x_flatten, x_fc1 = self.model_cnn(batch_data.float())
         x_fc2, x_fc3 = self.model_fc(x_fc1)
@@ -96,8 +95,8 @@ class Loss_CNN():
         balanced_target_accuracy = (acc_total_target_class_0 + acc_total_target_class_1)/2
 
         # Separation between MMD and CE Train Phase
-        if self.MMD_loss_flag_phase == True:
-            loss = source_ce_loss + mmd_loss
+        if mmd_loss_flag_phase == True:
+            loss = source_ce_loss + self.GAMMA * mmd_loss
         else:
             loss = source_ce_loss
 
