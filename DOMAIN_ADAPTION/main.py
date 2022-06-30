@@ -16,6 +16,8 @@ from Dataloader import Dataloader
 from Loss_CNN import Loss_CNN
 from Classifier import Classifier
 from MMD_loss import MMD_loss
+from MMD_loss_CNN import MMD_loss_CNN
+
 from CNN import CNN
 from plotter import Plotter
 
@@ -28,11 +30,17 @@ from Dataloader_prep_dataset import Dataloader_prep_dataset
 def main():
     #unpack arguments for training
     train_params = sys.argv[1:]
+    """
+    features_of_interest = train_params[0:2]
+    num_epochs = int(train_params[2])
+    GAMMA = float(train_params[3])
+    num_pool = int(train_params[4])
+    """
     features_of_interest = [train_params[0]]
-    #features_of_interest = ['C:s_ist/X']#"C:x_bottom"]
     num_epochs = int(train_params[1])
     GAMMA = float(train_params[2])
     num_pool = int(train_params[3])
+    
     #print(f"Features of interest: {features_of_interest} Num of epochs: {num_epochs} GAMMA: {GAMMA} num_pool: {num_pool}" )
     
     # check if CUDA is available
@@ -128,7 +136,7 @@ def main():
     dataloader_split_val = 0.2
 
     batch_size = 32
-
+    """
     ###Variant 2 ###
     source_numpy_array_names = ["source_X", "source_y"]
     target_numpy_array_names = ["target_X", "target_y"]
@@ -142,14 +150,14 @@ def main():
     dataloader_target = Dataloader_prep_dataset(dataset_target, dataloader_split_ce, dataloader_split_mmd, dataloader_split_val, batch_size, random_seed)
     source_loader = dataloader_source.create_dataloader()
     target_loader = dataloader_target.create_dataloader()
-    
-    ###Variant 1####
     """
+    ###Variant 1####
+    
     dataloader_source = Dataloader(data_path, list_of_source_BSD_states, window_size, overlap_size, features_of_interest, dataloader_split_ce, dataloader_split_mmd, dataloader_split_val, batch_size, random_seed)
     dataloader_target = Dataloader(data_path, list_of_target_BSD_states, window_size, overlap_size, features_of_interest, dataloader_split_ce, dataloader_split_mmd, dataloader_split_val, batch_size, random_seed)
     source_loader = dataloader_source.create_dataloader()
     target_loader = dataloader_target.create_dataloader()
-    """
+    
 
     #define Sigma for MMD Loss
     SIGMA = torch.tensor([1,2,4,8,16],dtype=torch.float64)
@@ -178,7 +186,8 @@ def main():
     # Define Loss
     criterion = torch.nn.CrossEntropyLoss()
     MMD_loss_calculator = MMD_loss(fix_sigma = SIGMA)
-    loss_cnn = Loss_CNN(model_cnn, model_fc, criterion, MMD_loss_calculator, GAMMA)
+    MMD_loss_CNN_calculator = MMD_loss_CNN(fix_sigma = SIGMA)
+    loss_cnn = Loss_CNN(model_cnn, model_fc, criterion, MMD_loss_calculator, MMD_loss_CNN_calculator, GAMMA)
 
     #Optimizer
     optimizer1 = torch.optim.Adam([

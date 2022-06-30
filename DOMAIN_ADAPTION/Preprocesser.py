@@ -32,41 +32,6 @@ class Preprocessor:
         self.features_of_interest = features_of_interest
         self.numpy_array_names = numpy_array_names
 
-    def split_data(self, data):
-        """
-        Split data in windows of equal size with overlap
-        
-        INPUT:
-        @data: data numpy array of shape [elements per file, features]
-        @window: number of elements per window
-        @overlap_size: defines the overlapping elements between consecutive windows
-        
-        OUTPUT
-        @data: data numpy array of shape [number_of_windows, elements per window, features]
-        """
-
-        if self.window_size==self.overlap_size:
-            raise Exception("Overlap arg must be smaller than length of windows")
-        S = self.window_size - self.overlap_size
-        nd0 = ((len(data)-self.window_size)//S)+1
-        if nd0*S-S!=len(data)-self.window_size:
-            warnings.warn("Not all elements were covered")
-        return view_as_windows(data, (self.window_size,data.shape[1]), step=S)[:,0,:,:]
-
-    def del_nan_element(self, data_with_nan):
-        """
-        Delete all elements in the data which have any nan valued feature
-        
-        INPUT:
-        @data_with_nan: data numpy array containing nan_values
-        
-        OUTPUT
-        @data_with_nan: data numpy array inlcuding just elements per window which do have no nan_vaues in any feature
-        """
-        nan_val = np.isnan(data_with_nan) #mask for all nan_elements as 2d array [elements_per_window, features]
-        nan_val = np.any(nan_val,axis = 1) #mask for all nan_rows as 1d array [elements_per_window]
-        return data_with_nan[nan_val==False]
-
     def create_folder_dictionary(self):
         """
         Create a dictionaty for testing and training containing folder names as keys and files as values

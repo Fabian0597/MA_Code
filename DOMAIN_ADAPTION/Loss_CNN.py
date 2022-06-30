@@ -1,13 +1,14 @@
 import torch
 
 class Loss_CNN():
-    def __init__(self, model_cnn, model_fc, criterion, MMD_loss_calculator, GAMMA):
+    def __init__(self, model_cnn, model_fc, criterion, MMD_loss_calculator, MMD_loss_CNN_calculator, GAMMA):
         self.model_cnn = model_cnn
         self.model_fc = model_fc
         self.criterion = criterion
         self.MMD_loss_calculator = MMD_loss_calculator
+        self.MMD_loss_CNN_calculator = MMD_loss_CNN_calculator
         self.GAMMA = GAMMA
-
+ 
     
     def forward(self, batch_data, labels_source, labels_target, mmd_loss_flag_phase):
         #Feature extraction
@@ -38,21 +39,25 @@ class Loss_CNN():
         #mmd_loss_3_fc = self.MMD_loss_calculator.forward(x_fc2[:batch_size, :], x_fc2[batch_size:, :])
         
 
+ 
+
+        mmd_loss_1_cnn = self.MMD_loss_CNN_calculator.forward(x_conv_1[:batch_size, :, :], x_conv_1[batch_size:, :, :])
+        mmd_loss_2_cnn = self.MMD_loss_CNN_calculator.forward(x_conv_2[:batch_size, :, :], x_conv_2[batch_size:,:, :])
+        mmd_loss_3_cnn = self.MMD_loss_CNN_calculator.forward(x_conv_3[:batch_size, :, :], x_conv_3[batch_size:,:, :])
+        
         #MMD Loss for CNN Layers
-        mmd_loss_1_cnn = 0
-        mmd_loss_2_cnn = 0
-        mmd_loss_3_cnn = 0
-        
-        for channel1 in range(x_conv_1.size()[1]):
-            mmd_loss_1_cnn += self.MMD_loss_calculator.forward(x_conv_1[:batch_size, channel1, :], x_conv_1[batch_size:,channel1, :])
-        for channel2 in range(x_conv_2.size()[1]):
-            mmd_loss_2_cnn += self.MMD_loss_calculator.forward(x_conv_2[:batch_size, channel2, :], x_conv_2[batch_size:,channel2, :])
-        for channel3 in range(x_conv_3.size()[1]):
-            mmd_loss_3_cnn += self.MMD_loss_calculator.forward(x_conv_3[:batch_size, channel3, :], x_conv_3[batch_size:,channel3, :])
-          
-        
+        #mmd_loss_1_cnn = 0
+        #mmd_loss_2_cnn = 0
+        #mmd_loss_3_cnn = 0
+        #for channel1 in range(x_conv_1.size()[1]):
+            #mmd_loss_1_cnn += self.MMD_loss_calculator.forward(x_conv_1[:batch_size, channel1, :], x_conv_1[batch_size:,channel1, :])
+        #for channel2 in range(x_conv_2.size()[1]):
+            #mmd_loss_2_cnn += self.MMD_loss_calculator.forward(x_conv_2[:batch_size, channel2, :], x_conv_2[batch_size:,channel2, :])
+        #for channel3 in range(x_conv_3.size()[1]):
+            #mmd_loss_3_cnn += self.MMD_loss_calculator.forward(x_conv_3[:batch_size, channel3, :], x_conv_3[batch_size:,channel3, :])
         #Total MMD Loss
-        mmd_loss =  mmd_loss_1_cnn + mmd_loss_2_cnn + mmd_loss_3_cnn
+
+        mmd_loss =  self.GAMMA * (mmd_loss_1_cnn + mmd_loss_2_cnn + mmd_loss_3_cnn)
 
         # list of latent space features in FC1 for plot
         class_0_source_fc2 = x_fc2[:batch_size, :][labels_source==0]
@@ -96,7 +101,7 @@ class Loss_CNN():
 
         # Separation between MMD and CE Train Phase
         if mmd_loss_flag_phase == True:
-            loss = source_ce_loss + self.GAMMA * mmd_loss
+            loss = source_ce_loss + mmd_loss
         else:
             loss = source_ce_loss
 

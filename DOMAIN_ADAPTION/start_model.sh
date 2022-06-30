@@ -11,13 +11,16 @@
 #        "S:Actual_rotational_speed[µm/s]" "S:Actual_position_of_the_position_encoder(dy/dt)[µm/s]"
 #        "S:Actual_position_of_the_motor_encoder(dy/dt)[µm/s]")
 
-features_of_interest=("D:P_mech./X" "D:I_soll/X")
-num_epochs=70
-GAMMAs=(0.05 0.1 0.2 0.5 0.7)
+features_of_interest1=( "D:P_mech./X" "D:Pos._Diff./X" "D:I_ist/X" "D:I_soll/X" "C:x_bottom" "C:y_bottom" "C:z_bottom")
+features_of_interest2=( "D:P_mech./X" "D:Pos._Diff./X" "D:I_ist/X" "D:I_soll/X" "C:x_bottom" "C:y_bottom" "C:z_bottom")
+num_epochs=50
+GAMMA=0.05
 num_pool=2
 
-for feature_of_interest in ${features_of_interest[@]}; do
-  for GAMMA in ${GAMMAs[@]}; do
-    python3 main.py $feature_of_interest $num_epochs $GAMMA $num_pool
+for feature_of_interest1 in ${features_of_interest1[@]}; do
+  for feature_of_interest2 in ${features_of_interest2[@]}; do
+    if [ $feature_of_interest1 != $feature_of_interest2 ]; then
+    python3 main.py $feature_of_interest1 $feature_of_interest2 $num_epochs $GAMMA $num_pool
+    fi
   done
 done
