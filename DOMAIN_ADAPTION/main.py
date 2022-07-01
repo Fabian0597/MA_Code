@@ -59,7 +59,7 @@ def main():
 
     #Folder name to store data for each experiment
     features_of_interest_folder = features_of_interest[0].replace("/", "_")
-    folder_to_store_data = "experiments/feature=" + str(features_of_interest_folder) + "_" + "_" + "GAMMA=" + str(GAMMA)
+    folder_to_store_data = "experiments/feature=" + str(features_of_interest_folder)  + "_" + "GAMMA=" + str(GAMMA) + "_" + "num_pool=" + str(num_pool) + "_" + str(MMD_layer_activation_flag)
 
     #Generate folder structure to store plots and data
     current_directory = os.getcwd()
@@ -215,6 +215,7 @@ def main():
     f_hyperparameter.write(f'num_epochs: {num_epochs}\n')
     f_hyperparameter.write(f'GAMMA: {GAMMA}\n')
     f_hyperparameter.write(f'num_pool: {num_pool}\n')
+    f_hyperparameter.write(f'MMD_layer_flag: {MMD_layer_activation_flag}\n')
     f_hyperparameter.write(f'list_of_source_BSD_states: {list_of_source_BSD_states}\n')
     f_hyperparameter.write(f'list_of_target_BSD_states: {list_of_target_BSD_states}\n')
     f_hyperparameter.write(f'dataloader_split_ce: {dataloader_split_ce}\n')

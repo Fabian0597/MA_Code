@@ -12,8 +12,8 @@
 #        "S:Actual_position_of_the_motor_encoder(dy/dt)[µm/s]")
 
 features_of_interest1="D:P_mech./X"
-num_epochs=1
-GAMMA=0.05
+num_epochs=40
+GAMMA=0.1
 num_pool=2
 MMD_layer_activation_flag=( False False False False False False )
 
