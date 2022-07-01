@@ -30,16 +30,23 @@ from Dataloader_prep_dataset import Dataloader_prep_dataset
 def main():
     #unpack arguments for training
     train_params = sys.argv[1:]
+    print(train_params)
     """
     features_of_interest = train_params[0:2]
     num_epochs = int(train_params[2])
     GAMMA = float(train_params[3])
     num_pool = int(train_params[4])
+    MMD_layer_activation_flag = train_params[5:]
+    
     """
     features_of_interest = [train_params[0]]
     num_epochs = int(train_params[1])
     GAMMA = float(train_params[2])
     num_pool = int(train_params[3])
+    MMD_layer_activation_flag = train_params[4:]
+    
+    MMD_layer_activation_flag = [eval(item.title()) for item in MMD_layer_activation_flag]
+    
     
     #print(f"Features of interest: {features_of_interest} Num of epochs: {num_epochs} GAMMA: {GAMMA} num_pool: {num_pool}" )
     
@@ -187,7 +194,7 @@ def main():
     criterion = torch.nn.CrossEntropyLoss()
     MMD_loss_calculator = MMD_loss(fix_sigma = SIGMA)
     MMD_loss_CNN_calculator = MMD_loss_CNN(fix_sigma = SIGMA)
-    loss_cnn = Loss_CNN(model_cnn, model_fc, criterion, MMD_loss_calculator, MMD_loss_CNN_calculator, GAMMA)
+    loss_cnn = Loss_CNN(model_cnn, model_fc, criterion, MMD_loss_calculator, MMD_loss_CNN_calculator, GAMMA, MMD_layer_activation_flag)
 
     #Optimizer
     optimizer1 = torch.optim.Adam([
