@@ -1,17 +1,16 @@
 import torch
 
 class Loss_CNN():
-    def __init__(self, model_cnn, model_fc, criterion, MMD_loss_calculator, MMD_loss_CNN_calculator, GAMMA, MMD_layer_activation_flag):
+    def __init__(self, model_cnn, model_fc, criterion, MMD_loss_calculator, MMD_loss_CNN_calculator,  MMD_layer_activation_flag):
         self.model_cnn = model_cnn
         self.model_fc = model_fc
         self.criterion = criterion
         self.MMD_loss_calculator = MMD_loss_calculator
         self.MMD_loss_CNN_calculator = MMD_loss_CNN_calculator
-        self.GAMMA = GAMMA
         self.MMD_layer_activation_flag = MMD_layer_activation_flag
  
     
-    def forward(self, batch_data, labels_source, labels_target, mmd_loss_flag_phase):
+    def forward(self, batch_data, labels_source, labels_target, mmd_loss_flag_phase, GAMMA):
         #Feature extraction
         x_conv_1, x_conv_2, x_conv_3, x_flatten, x_fc1 = self.model_cnn(batch_data.float())
         x_fc2, x_fc3 = self.model_fc(x_fc1)
@@ -73,7 +72,7 @@ class Loss_CNN():
             #mmd_loss_3_cnn += self.MMD_loss_calculator.forward(x_conv_3[:batch_size, channel3, :], x_conv_3[batch_size:,channel3, :])
         #Total MMD Loss
 
-        mmd_loss =  self.GAMMA * (mmd_loss_1_cnn + mmd_loss_2_cnn + mmd_loss_3_cnn + mmd_loss_1_fc + mmd_loss_2_fc + mmd_loss_3_fc)
+        mmd_loss =  GAMMA * (mmd_loss_1_cnn + mmd_loss_2_cnn + mmd_loss_3_cnn + mmd_loss_1_fc + mmd_loss_2_fc + mmd_loss_3_fc)
 
         # list of latent space features in FC1 for plot
         class_0_source_fc2 = x_fc2[:batch_size, :][labels_source==0]
@@ -116,10 +115,10 @@ class Loss_CNN():
         balanced_target_accuracy = (acc_total_target_class_0 + acc_total_target_class_1)/2
 
         # Separation between MMD and CE Train Phase
-        if mmd_loss_flag_phase == True:
-            loss = source_ce_loss + mmd_loss
-        else:
-            loss = source_ce_loss
-
+        #if mmd_loss_flag_phase == True:
+        #    loss = source_ce_loss + mmd_loss
+        #else:
+        #    loss = source_ce_loss
+        loss = source_ce_loss + mmd_loss
         
         return loss, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, balanced_target_accuracy, class_0_source_fc2, class_1_source_fc2, class_0_target_fc2, class_1_target_fc2

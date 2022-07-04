@@ -12,9 +12,14 @@
 #        "S:Actual_position_of_the_motor_encoder(dy/dt)[µm/s]")
 
 feature_of_interest="D:P_mech./X"
-num_epochs=50
-GAMMA=0.05
+num_epochs=30
+GAMMA=0.1
+GAMMA_reduction=0.98
 num_pool=2
-MMD_layer_activation_flag=( True True True False False False )
+MMD_layer_activation_flag=( True True False True True True )
 
-python3 main.py $feature_of_interest $num_epochs $GAMMA $num_pool ${MMD_layer_activation_flag[@]} 
+rm -r runs
+
+python3 main.py $feature_of_interest $num_epochs $GAMMA $GAMMA_reduction $num_pool ${MMD_layer_activation_flag[@]}
+
+

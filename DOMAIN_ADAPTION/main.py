@@ -35,15 +35,20 @@ def main():
     features_of_interest = train_params[0:2]
     num_epochs = int(train_params[2])
     GAMMA = float(train_params[3])
-    num_pool = int(train_params[4])
-    MMD_layer_activation_flag = train_params[5:]
+    GAMMA_reduction = float(train_params[4])
+    num_pool = int(train_params[5])
+    MMD_layer_activation_flag = train_params[6:]
     
     """
-    features_of_interest = [train_params[0]]
+    experiment_name = str(train_params[0])
     num_epochs = int(train_params[1])
     GAMMA = float(train_params[2])
-    num_pool = int(train_params[3])
-    MMD_layer_activation_flag = train_params[4:]
+    GAMMA_reduction = float(train_params[3])
+    num_pool = int(train_params[4])
+    MMD_layer_activation_flag = train_params[5:11]
+    features_of_interest = train_params[11:]
+    print(MMD_layer_activation_flag)
+    print(features_of_interest)
     
     MMD_layer_activation_flag = [eval(item.title()) for item in MMD_layer_activation_flag]
     
@@ -59,7 +64,7 @@ def main():
 
     #Folder name to store data for each experiment
     features_of_interest_folder = features_of_interest[0].replace("/", "_")
-    folder_to_store_data = "experiments/feature=" + str(features_of_interest_folder)  + "_" + "GAMMA=" + str(GAMMA) + "_" + "num_pool=" + str(num_pool) + "_" + str(MMD_layer_activation_flag)
+    folder_to_store_data = "experiments/feature=" + str(features_of_interest_folder)  + "_" + "GAMMA=" + str(GAMMA) + "_" +"GAMMA_reduction" + str(GAMMA_reduction) + "_" + "num_pool=" + str(num_pool) + "_" + str(MMD_layer_activation_flag)
 
     #Generate folder structure to store plots and data
     current_directory = os.getcwd()
@@ -108,12 +113,12 @@ def main():
     phases = ['val', 'mmd', 'ce']
 
     #init writer for tensorboard    
-    writer_source_val = SummaryWriter('runs/Dataloader2/source_val')
-    writer_source_mmd = SummaryWriter('runs/Dataloader2/source_mmd')
-    writer_source_ce = SummaryWriter('runs/Dataloader2/source_ce')
-    writer_target_val = SummaryWriter('runs/Dataloader2/target_val')
-    writer_target_mmd = SummaryWriter('runs/Dataloader2/target_mmd')
-    writer_target_ce = SummaryWriter('runs/Dataloader2/target_ce')
+    writer_source_val = SummaryWriter(f'runs/{experiment_name}/source_val')
+    writer_source_mmd = SummaryWriter(f'runs/{experiment_name}/source_mmd')
+    writer_source_ce = SummaryWriter(f'runs/{experiment_name}/source_ce')
+    writer_target_val = SummaryWriter(f'runs//{experiment_name}target_val')
+    writer_target_mmd = SummaryWriter(f'runs/{experiment_name}/target_mmd')
+    writer_target_ce = SummaryWriter(f'runs/{experiment_name}/target_ce')
 
     writer_source = {}
     writer_source["val"] = writer_source_val
@@ -194,7 +199,7 @@ def main():
     criterion = torch.nn.CrossEntropyLoss()
     MMD_loss_calculator = MMD_loss(fix_sigma = SIGMA)
     MMD_loss_CNN_calculator = MMD_loss_CNN(fix_sigma = SIGMA)
-    loss_cnn = Loss_CNN(model_cnn, model_fc, criterion, MMD_loss_calculator, MMD_loss_CNN_calculator, GAMMA, MMD_layer_activation_flag)
+    loss_cnn = Loss_CNN(model_cnn, model_fc, criterion, MMD_loss_calculator, MMD_loss_CNN_calculator, MMD_layer_activation_flag)
 
     #Optimizer
     optimizer1 = torch.optim.Adam([
@@ -214,6 +219,7 @@ def main():
     f_hyperparameter.write(f'features of interest: {features_of_interest}\n')
     f_hyperparameter.write(f'num_epochs: {num_epochs}\n')
     f_hyperparameter.write(f'GAMMA: {GAMMA}\n')
+    f_hyperparameter.write(f'GAMMA_reduction: {GAMMA_reduction}\n')
     f_hyperparameter.write(f'num_pool: {num_pool}\n')
     f_hyperparameter.write(f'MMD_layer_flag: {MMD_layer_activation_flag}\n')
     f_hyperparameter.write(f'list_of_source_BSD_states: {list_of_source_BSD_states}\n')
@@ -254,6 +260,9 @@ def main():
     # Train and Validate the model
     for epoch in range(num_epochs):
 
+        GAMMA*=GAMMA_reduction
+        print(GAMMA)
+
         #init array which collects the data in FC for plottnig the data distribution
         class_0_source_fc2_collect = torch.empty((0,3))
         class_1_source_fc2_collect = torch.empty((0,3))
@@ -290,7 +299,7 @@ def main():
                     model_fc.train(False)
                     
                     with torch.no_grad():
-                        _, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, balanced_target_accuracy, class_0_source_fc2, class_1_source_fc2, class_0_target_fc2, class_1_target_fc2 = loss_cnn.forward(batch_data, labels_source, labels_target, MMD_loss_flag_phase[phase])
+                        _, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, balanced_target_accuracy, class_0_source_fc2, class_1_source_fc2, class_0_target_fc2, class_1_target_fc2 = loss_cnn.forward(batch_data, labels_source, labels_target, MMD_loss_flag_phase[phase], GAMMA)
                         
                         # collect latent features of fc2 for plot 
                         class_0_source_fc2_collect = torch.cat((class_0_source_fc2_collect, class_0_source_fc2), 0)
@@ -304,7 +313,7 @@ def main():
                     model_fc.train(True)
                     
                     ######## Forward pass ########
-                    loss, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, _, _, _, _, _ = loss_cnn.forward(batch_data, labels_source, labels_target, MMD_loss_flag_phase[phase])
+                    loss, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, _, _, _, _, _ = loss_cnn.forward(batch_data, labels_source, labels_target, MMD_loss_flag_phase[phase], GAMMA)
                     
                     mmd_loss = mmd_loss.detach()
                     source_ce_loss = source_ce_loss.detach()
@@ -329,7 +338,7 @@ def main():
                 balanced_target_accuracy_collected += balanced_target_accuracy
             
             # store data distribution in latent feature space fc2 in csv
-            if phase == "val" and (epoch ==0 or epoch ==5 or epoch == 10 or epoch ==20):
+            if phase == "val" and (epoch ==0 or epoch ==20 or epoch == 40 or epoch ==80):
                 
                 df1 = pd.DataFrame({'class_0_source_fc2_collect_0_dim':class_0_source_fc2_collect[:, 0]})
                 df2 = pd.DataFrame({'class_0_source_fc2_collect_1_dim':class_0_source_fc2_collect[:, 1]})
