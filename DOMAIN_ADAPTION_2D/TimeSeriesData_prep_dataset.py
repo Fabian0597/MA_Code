@@ -116,11 +116,8 @@ class TimeSeriesData_prep_dataset(Dataset):
         assert np.all(array_to_check_y[mask,:,:] == y_data)
         y_data = y_data[:,0,0]
         X_data = np.swapaxes(X_data,1,2) #swap axes for CNN
-        #X_data = self.__wavelet_transform(X_data)
+        X_data = self.__wavelet_transform(X_data)
 
-        data_path = Path(os.getcwd()).parents[0]
-        data_path = os.path.join(data_path, "DOMAIN_ADAPTION/wavelet_transforms_np")
-        np.save(os.path.join(data_path, "before_wavelet_transforms_source_1.npy"), X_data)
         n_samples = len(y_data)
         X_data = torch.from_numpy(X_data)
         y_data = torch.from_numpy(y_data)

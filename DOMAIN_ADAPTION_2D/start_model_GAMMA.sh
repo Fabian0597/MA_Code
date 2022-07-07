@@ -13,8 +13,8 @@
 
 
 num_epochs=80
-GAMMAs=( 0.1 )
-GAMMA_reductions=( 0.95 0.97 0.99)
+GAMMAs=( 0.1 0.05 )
+GAMMA_reductions=( 1 )
 num_pool=2
 MMD_layer_activation_flag=( True True False True True True )
 

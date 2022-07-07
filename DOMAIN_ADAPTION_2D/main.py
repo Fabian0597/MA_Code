@@ -18,7 +18,6 @@ from Classifier import Classifier
 from MMD_loss import MMD_loss
 from MMD_loss_CNN import MMD_loss_CNN
 
-from CNN import CNN
 from CNN_2D import CNN_2D
 from plotter import Plotter
 
