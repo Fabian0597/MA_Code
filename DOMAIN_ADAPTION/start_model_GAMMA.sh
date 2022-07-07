@@ -12,13 +12,13 @@
 #        "S:Actual_position_of_the_motor_encoder(dy/dt)[µm/s]")
 
 
-num_epochs=80
-GAMMAs=( 0.1 )
-GAMMA_reductions=( 0.95 0.97 0.99)
+num_epochs=120
+GAMMAs=( 0.05 0.5 1 )
+GAMMA_reductions=( 0.999 )
 num_pool=2
 MMD_layer_activation_flag=( True True False True True True)
 
-features_of_interest=( "D:P_mech./X" "D:I_ist/X" "D:I_soll/X" "S:y_nut" "S:y_bottom" "C:y_bottom" )
+features_of_interest=( "D:P_mech./X" "D:I_ist/X" "D:I_soll/X" "S:y_nut" "S:y_bottom" "C:y_bottom" "C:x_bottom" "C:Pos._Diff./X" )
 
 if [ -d "runs" ];then
   rm -r runs

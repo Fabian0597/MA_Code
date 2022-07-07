@@ -115,10 +115,10 @@ class Loss_CNN():
         balanced_target_accuracy = (acc_total_target_class_0 + acc_total_target_class_1)/2
 
         # Separation between MMD and CE Train Phase
-        #if mmd_loss_flag_phase == True:
-        #    loss = source_ce_loss + mmd_loss
-        #else:
-        #    loss = source_ce_loss
-        loss = source_ce_loss + mmd_loss
+        if mmd_loss_flag_phase == True:
+            loss = source_ce_loss + mmd_loss
+        else:
+            loss = source_ce_loss
+        #loss = source_ce_loss + mmd_loss
         
         return loss, mmd_loss, source_ce_loss, target_ce_loss, acc_total_source, acc_total_target, balanced_target_accuracy, class_0_source_fc2, class_1_source_fc2, class_0_target_fc2, class_1_target_fc2
