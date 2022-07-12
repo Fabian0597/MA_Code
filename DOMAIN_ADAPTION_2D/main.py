@@ -43,10 +43,8 @@ def main():
     experiment_name = str(train_params[0])
     num_epochs = int(train_params[1])
     GAMMA = float(train_params[2])
-    GAMMA_reduction = float(train_params[3])
-    num_pool = int(train_params[4])
-    MMD_layer_activation_flag = train_params[5:11]
-    features_of_interest = train_params[11:]
+    MMD_layer_activation_flag = train_params[3:9]
+    features_of_interest = train_params[9:]
     print(MMD_layer_activation_flag)
     print(features_of_interest)
     
@@ -66,9 +64,10 @@ def main():
     feature_of_interest_folder_idx = ""
     for feature_of_interest_idx, _ in enumerate(features_of_interest):
         feature_of_interest_folder_idx += "_" + str(feature_of_interest_idx)
-
-
-    folder_to_store_data = "experiments/features=" + feature_of_interest_folder_idx + "_" "GAMMA=" + str(GAMMA) + "_" +"GAMMA_reduction" + str(GAMMA_reduction) + "_" + "num_pool=" + str(num_pool) + "_" + str(MMD_layer_activation_flag)
+    print(features_of_interest)
+    feature_of_interest_folder = features_of_interest[0].replace("/","_")
+    
+    folder_to_store_data = "experiments/features=" + feature_of_interest_folder + "_" "GAMMA=" + str(GAMMA) + "_" + str(MMD_layer_activation_flag)
 
     #Generate folder structure to store plots and data
     current_directory = os.getcwd()
@@ -226,8 +225,6 @@ def main():
     f_hyperparameter.write(f'features of interest: {features_of_interest}\n')
     f_hyperparameter.write(f'num_epochs: {num_epochs}\n')
     f_hyperparameter.write(f'GAMMA: {GAMMA}\n')
-    f_hyperparameter.write(f'GAMMA_reduction: {GAMMA_reduction}\n')
-    f_hyperparameter.write(f'num_pool: {num_pool}\n')
     f_hyperparameter.write(f'MMD_layer_flag: {MMD_layer_activation_flag}\n')
     f_hyperparameter.write(f'list_of_source_BSD_states: {list_of_source_BSD_states}\n')
     f_hyperparameter.write(f'list_of_target_BSD_states: {list_of_target_BSD_states}\n')
@@ -261,14 +258,10 @@ def main():
     max_target_val_accuracy = 0
     best_GAMMA = None
     best_features_of_interest = None
-    best_pool = None
 
 
     # Train and Validate the model
     for epoch in range(num_epochs):
-
-        GAMMA*=GAMMA_reduction
-        print(GAMMA)
 
         #init array which collects the data in FC for plottnig the data distribution
         class_0_source_fc2_collect = torch.empty((0,3))
@@ -378,7 +371,6 @@ def main():
                     torch.save(model_fc.state_dict(), f'{folder_to_store_data}/best_model/model_fc.pt')
                     best_GAMMA = GAMMA
                     best_features_of_interest = features_of_interest
-                    best_pool = num_pool
 
             #Add train data to tensorboard list
             writer_source[phase].add_scalar(f'accuracy', running_acc_source, epoch)
@@ -413,13 +405,13 @@ def main():
     plotter.plot_distribution()
     plotter.plot_curves()
 
-    print(f"With an Accuracy of: {max_target_val_accuracy} the model with the following hyperparameter performed best:\nbest_features_of_interest: {best_features_of_interest}\nbest_GAMMA: {best_GAMMA}\nbest_pool: {best_pool}")
+    print(f"With an Accuracy of: {max_target_val_accuracy} the model with the following hyperparameter performed best:\nbest_features_of_interest: {best_features_of_interest}\nbest_GAMMA: {best_GAMMA}")
 
     ################
     #   Testing    #
     ################
 
-    model_cnn_test =  CNN(input_size, hidden_fc_size_1, num_pool, window_size, random_seed)
+    model_cnn_test = CNN_2D(input_size, image_size, hidden_fc_size_1, random_seed)
     model_cnn_test.load_state_dict(torch.load(f'{folder_to_store_data}/best_model/model_cnn.pt'))
     model_cnn_test.eval()
 

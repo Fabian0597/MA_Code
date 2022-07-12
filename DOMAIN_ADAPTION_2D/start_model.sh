@@ -5,7 +5,7 @@
 
 
 feature_of_interest=( "D:P_mech./X" "D:I_ist/X" "D:I_soll/X" )
-num_epochs=30
+num_epochs=50
 GAMMA=0.1
 GAMMA_reduction=0.98
 num_pool=2

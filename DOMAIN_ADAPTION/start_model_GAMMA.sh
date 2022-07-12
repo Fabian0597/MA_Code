@@ -12,13 +12,13 @@
 #        "S:Actual_position_of_the_motor_encoder(dy/dt)[µm/s]")
 
 
-num_epochs=120
-GAMMAs=( 0.05 0.5 1 )
-GAMMA_reductions=( 0.999 )
+num_epochs=70
+GAMMAs=( 0.05 )
+GAMMA_reductions=( 1 )
 num_pool=2
 MMD_layer_activation_flag=( True True False True True True)
 
-features_of_interest=( "D:P_mech./X" "D:I_ist/X" "D:I_soll/X" "S:y_nut" "S:y_bottom" "C:y_bottom" "C:x_bottom" "C:Pos._Diff./X" )
+features_of_interest=( "D:I_ist/X" "D:I_soll/X" )
 
 if [ -d "runs" ];then
   rm -r runs
@@ -28,14 +28,17 @@ else
 fi
 
 experiment_number=0
-
-for GAMMA in ${GAMMAs[@]}; do
-  for GAMMA_reduction in ${GAMMA_reductions[@]}; do
-    for feature_of_interest in ${features_of_interest[@]}; do
+for i in {1..2}
+do
+  echo "iteration $i"
+  for GAMMA in ${GAMMAs[@]}; do
+    for GAMMA_reduction in ${GAMMA_reductions[@]}; do
+      for feature_of_interest in ${features_of_interest[@]}; do
 	((experiment_number=experiment_number+1))
-	experiment_name="experiment_${experiment_number}"
+	experiment_name="experiment_1D_${experiment_number}"
 	echo $experiment_name
 	python3 main.py $experiment_name $num_epochs $GAMMA $GAMMA_reduction $num_pool ${MMD_layer_activation_flag[@]} $feature_of_interest
+      done
     done
   done
 done

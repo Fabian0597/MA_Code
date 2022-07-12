@@ -11,15 +11,17 @@
 #        "S:Actual_rotational_speed[µm/s]" "S:Actual_position_of_the_position_encoder(dy/dt)[µm/s]"
 #        "S:Actual_position_of_the_motor_encoder(dy/dt)[µm/s]")
 
-feature_of_interest="D:P_mech./X"
-num_epochs=30
-GAMMA=0.1
-GAMMA_reduction=0.98
+
+experiment_name="single_testing"
+num_epochs=120
+GAMMA=1
+GAMMA_reduction=0.99
 num_pool=2
 MMD_layer_activation_flag=( True True False True True True )
+feature_of_interest=( "D:I_soll/X" )
 
-rm -r runs
+#rm -r runs
 
-python3 main.py $feature_of_interest $num_epochs $GAMMA $GAMMA_reduction $num_pool ${MMD_layer_activation_flag[@]}
+python3 main.py $experiment_name $num_epochs $GAMMA $GAMMA_reduction $num_pool ${MMD_layer_activation_flag[@]} ${feature_of_interest[@]}
 
 
