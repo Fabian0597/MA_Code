@@ -1,1 +1,4 @@
 DOMAIN_ADAPTION_2D/wavelet/wavelet_transforms_np
+.DS_Store
+__pycache__
+runs
