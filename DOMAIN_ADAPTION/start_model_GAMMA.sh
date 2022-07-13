@@ -13,19 +13,19 @@
 
 
 num_epochs=70
-GAMMAs=( 0.05 )
+GAMMAs=( 0.05 0.5 1 )
 GAMMA_reductions=( 1 )
 num_pool=2
-MMD_layer_activation_flag=( True True False True True True)
+MMD_layer_activation_flag=( False False False True True True )
 
-features_of_interest=( "D:I_ist/X" "D:I_soll/X" )
+features_of_interest=("D:P_mech./"D:P_mech./X"" )
 
-if [ -d "runs" ];then
-  rm -r runs
-  echo "file exists"
-else
-  echo "file does not exist"
-fi
+#if [ -d "runs" ];then
+#  rm -r runs
+#  echo "file exists"
+#else
+#  echo "file does not exist"
+#fi
 
 experiment_number=0
 for i in {1..2}
