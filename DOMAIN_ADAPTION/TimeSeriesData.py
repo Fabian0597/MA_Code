@@ -189,11 +189,18 @@ class TimeSeriesData(Dataset):
                 data_BSD_file = np.swapaxes(data_BSD_file,1,2) #swap axes for CNN
                 
                 #rewrite labels as BSD_condition_1 = 0, BSD_condition_2 = 1, BSD_condition_3 = 2, BSD_condition_P1 = 3
-                label = BSD_path[-2] #take the first number of the BSD state for class label
+                label_file = BSD_path[-2] #take the first number of the BSD state for class label
+                """
                 if label == "P":
                     label = int(3)
                 else:
                     label =int(int(label)-1)
+                """
+                if label_file == "P" or label_file == "1":
+                    label = 0
+                elif label_file == "2" or label_file == "3":
+                    label = 1
+                print(label)
                 
                 #concatenate the data from each file in one numpy array
                 if  first == True: #overwrite variable

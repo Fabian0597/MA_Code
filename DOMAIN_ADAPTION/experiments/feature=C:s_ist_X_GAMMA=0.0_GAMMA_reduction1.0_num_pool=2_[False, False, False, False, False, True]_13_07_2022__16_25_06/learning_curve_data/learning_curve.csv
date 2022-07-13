@@ -1,0 +1,3 @@
+running_acc_source_val,running_acc_target_val,running_source_ce_loss_val,running_target_ce_loss_val,running_mmd_loss_val,running_acc_source_mmd,running_acc_target_mmd,running_source_ce_loss_mmd,running_target_ce_loss_mmd,running_mmd_loss_mmd,running_acc_source_ce,running_acc_target_ce,running_source_ce_loss_ce,running_target_ce_loss_ce,running_mmd_loss_ce
+0.0,0.0,0.738171398639679,0.738156259059906,0.0,0.0,0.0,0.737831175327301,0.7375918626785278,0.0,100.0,100.0,0.2773851156234741,0.27693358808755875,0.0
+100.0,100.0,0.15555626153945923,0.1543641984462738,0.0,100.0,100.0,0.17397189140319824,0.1793230026960373,0.0,100.0,100.0,0.024119103327393532,0.02389590907841921,0.0

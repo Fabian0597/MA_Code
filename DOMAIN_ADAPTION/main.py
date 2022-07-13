@@ -5,7 +5,7 @@ import pandas as pd
 from pathlib import Path
 import matplotlib.pyplot as plt
 import random
-
+from datetime import datetime
 import torch
 
 from torch.utils.tensorboard import SummaryWriter
@@ -64,7 +64,8 @@ def main():
 
     #Folder name to store data for each experiment
     features_of_interest_folder = features_of_interest[0].replace("/", "_")
-    folder_to_store_data = "experiments_cnn/feature=" + str(features_of_interest_folder)  + "_" + "GAMMA=" + str(GAMMA) + "_" +"GAMMA_reduction" + str(GAMMA_reduction) + "_" + "num_pool=" + str(num_pool) + "_" + str(MMD_layer_activation_flag)
+    date =  datetime.now().strftime("%d_%m_%Y__%H_%M_%S")
+    folder_to_store_data = "experiments/feature=" + str(features_of_interest_folder)  + "_" + "GAMMA=" + str(GAMMA) + "_" +"GAMMA_reduction" + str(GAMMA_reduction) + "_" + "num_pool=" + str(num_pool) + "_" + str(MMD_layer_activation_flag) + "_" + date
 
     #Generate folder structure to store plots and data
     current_directory = os.getcwd()
@@ -135,8 +136,11 @@ def main():
     overlap_size = 0
 
     # Define which BSD states should be included in source and target domain
-    list_of_source_BSD_states = ["2", "3", "11", "12", "20", "21"]
-    list_of_target_BSD_states = ["5", "6", "14", "15", "23", "24"]
+    #list_of_source_BSD_states = ["2", "3", "11", "12", "20", "21"]
+    #list_of_target_BSD_states = ["5", "6", "14", "15", "23", "24"]
+    
+    list_of_source_BSD_states = ["1", "2", "3", "4", "10", "11", "12", "13", "19", "20", "21", "22"]
+    list_of_target_BSD_states = ["5", "6", "7", "9", "14", "15", "16", "18", "23", "24", "25", "27"]
 
     # Path where dataset is stored
     data_path = Path(os.getcwd()).parents[1]
