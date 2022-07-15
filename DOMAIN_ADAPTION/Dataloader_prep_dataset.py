@@ -44,23 +44,27 @@ class Dataloader_prep_dataset():
         train_ce_loader = DataLoader(dataset=dataset_train_ce,
                                 batch_size=self.batch_size,
                                 shuffle=True,
-                                num_workers=2)
+                                num_workers=2,
+                                drop_last=True)
 
         train_mmd_loader = DataLoader(dataset=dataset_train_mmd,
                                 batch_size=self.batch_size,
                                 shuffle=True,
-                                num_workers=2)
+                                num_workers=2,
+                                drop_last=True)
 
 
         val_loader = DataLoader(dataset=dataset_val,
                                 batch_size=self.batch_size,
                                 shuffle=True,
-                                num_workers=2)
+                                num_workers=2,
+                                drop_last=True)
 
         test_loader = DataLoader(dataset=dataset_test,
                                 batch_size=self.batch_size,
                                 shuffle=True,
-                                num_workers=2)
+                                num_workers=2,
+                                drop_last=True)
 
         data_loader = {}
         data_loader['ce'] = train_ce_loader
